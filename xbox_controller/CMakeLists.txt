@@ -4,7 +4,11 @@ project(xbox_controller)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED)
+find_package(catkin REQUIRED COMPONENTS
+  roscpp
+  std_msgs
+  sensor_msgs
+)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -61,10 +65,10 @@ find_package(catkin REQUIRED)
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
+#generate_messages(
 #   DEPENDENCIES
 #   std_msgs  # Or other packages containing msgs
-# )
+#)
 
 ###################################
 ## catkin specific configuration ##
@@ -76,7 +80,7 @@ find_package(catkin REQUIRED)
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
+  INCLUDE_DIRS include
 #  LIBRARIES xbox_controller
 #  CATKIN_DEPENDS other_catkin_pkg
 #  DEPENDS system_lib
@@ -88,24 +92,25 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-# include_directories(include)
-
-## Declare a cpp library
-# add_library(xbox_controller
-#   src/${PROJECT_NAME}/xbox_controller.cpp
-# )
+include_directories(
+  include
+  ${catkin_INCLUDE_DIRS}
+)
 
 ## Declare a cpp executable
-# add_executable(xbox_controller_node src/xbox_controller_node.cpp)
+add_executable(alfred_teleop_node
+  include/xbox_controller/alfred_teleop.h
+  src/alfred_teleop.cpp
+)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
 # add_dependencies(xbox_controller_node xbox_controller_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(xbox_controller_node
-#   ${catkin_LIBRARIES}
-# )
+target_link_libraries(alfred_teleop_node
+   ${catkin_LIBRARIES}
+)
 
 #############
 ## Install ##

@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/kl/hydro/catkin_ws/src/alfred/qtcreator-build/devel/setup.sh

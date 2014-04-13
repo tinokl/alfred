@@ -1,0 +1,7 @@
+set(_CATKIN_CURRENT_PACKAGE "xbox_controller")
+set(xbox_controller_MAINTAINER "kl <kl@todo.todo>")
+set(xbox_controller_DEPRECATED "")
+set(xbox_controller_VERSION "0.0.0")
+set(xbox_controller_BUILD_DEPENDS "roscpp" "std_msgs" "sensor_msgs")
+set(xbox_controller_RUN_DEPENDS "roscpp" "std_msgs" "sensor_msgs")
+set(xbox_controller_BUILDTOOL_DEPENDS "catkin")

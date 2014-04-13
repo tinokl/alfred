@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<launch>
+
+    <node pkg="alfred_teleop" type="alfred_teleop" name="alfred_teleop" >
+        <remap from="cmd_vel" to="cmd_vel"/>
+        <param name="sh_pitch_max" value="0.76" />
+        <param name="sh_pitch_min" value="-0.82" />
+        <param name="sh_yaw_max" value="2.58" />
+        <param name="sh_yaw_min" value="-2.58"/> 
+
+        <param name="std_trans_vel" value="0.2"/>
+        <param name="std_rot_vel" value="1.0"/>
+        <param name="std_delta_pitch" value="0.02"/>
+        <param name="std_delta_yaw" value="0.02"/>
+    </node>
+
+    <!-- run a joy node -->
+    <node pkg="joy" type="joy_node" name="joy_node" />
+
+</launch>

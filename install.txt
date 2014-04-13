@@ -1,0 +1,14 @@
+
+# Package xbox_controller
+## Joy Node is working with XBOX controller
+## URL: http://pingus.seul.org/~grumbel/xboxdrv/
+
+sudo add-apt-repository ppa:grumbel/ppa
+sudo apt-get update
+sudo apt-get install xboxdrv
+
+# Controller needs to be read and writeable!
+sudo chmod a+rw /dev/input/js0
+
+# to run xboxdrv, user must be in root group
+sudo adduser $username root
