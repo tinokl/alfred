@@ -1,1 +1,0 @@
-/usr/bin/c++       CMakeFiles/xbox_controller_node.dir/src/alfred_teleop.cpp.o  -o devel/lib/xbox_controller/xbox_controller_node -rdynamic 

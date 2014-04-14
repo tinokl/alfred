@@ -1,1 +1,0 @@
-/usr/bin/c++  -fPIC    -shared -Wl,-soname,libgtest_main.so -o libgtest_main.so CMakeFiles/gtest_main.dir/src/gtest_main.cc.o -L/home/kl/hydro/catkin_ws/src/alfred/qtcreator-build/gtest/src -lpthread libgtest.so -lpthread -Wl,-rpath,/home/kl/hydro/catkin_ws/src/alfred/qtcreator-build/gtest/src:/home/kl/hydro/catkin_ws/src/alfred/qtcreator-build/gtest 

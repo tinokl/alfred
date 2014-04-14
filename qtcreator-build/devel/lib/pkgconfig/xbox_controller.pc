@@ -1,8 +1,0 @@
-prefix=/home/kl/hydro/catkin_ws/src/alfred/qtcreator-build/devel
-
-Name: xbox_controller
-Description: Description of xbox_controller
-Version: 0.0.0
-Cflags: -I/home/kl/hydro/catkin_ws/src/alfred/xbox_controller/include
-Libs: -L/home/kl/hydro/catkin_ws/src/alfred/qtcreator-build/devel/lib 
-Requires: 
