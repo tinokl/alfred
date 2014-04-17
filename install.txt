@@ -12,3 +12,5 @@ sudo chmod a+rw /dev/input/js0
 
 # to run xboxdrv, user must be in root group
 sudo adduser $username root
+
+https://github.com/Grumbel/xboxdrv/issues/32

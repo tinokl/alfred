@@ -1,13 +1,12 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(xbox_controller)
+project(ra1_pro_msgs)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  roscpp
   std_msgs
-  sensor_msgs
+  message_generation
 )
 
 ## System dependencies are found with CMake's conventions
@@ -44,11 +43,11 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
+add_message_files(
+   FILES
+   Ra1ProVelCmd.msg
 #   Message2.msg
-# )
+)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -65,10 +64,10 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-#generate_messages(
-#   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
-#)
+generate_messages(
+   DEPENDENCIES
+   std_msgs
+)
 
 ###################################
 ## catkin specific configuration ##
@@ -80,9 +79,9 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include
-#  LIBRARIES xbox_controller
-#  CATKIN_DEPENDS other_catkin_pkg
+#  INCLUDE_DIRS include
+#  LIBRARIES ra1_pro_msgs
+   CATKIN_DEPENDS std_msgs
 #  DEPENDS system_lib
 )
 
@@ -92,25 +91,27 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
+# include_directories(include)
 include_directories(
-  include
   ${catkin_INCLUDE_DIRS}
 )
 
+## Declare a cpp library
+# add_library(ra1_pro_msgs
+#   src/${PROJECT_NAME}/ra1_pro_msgs.cpp
+# )
+
 ## Declare a cpp executable
-add_executable(alfred_teleop_node
-  include/xbox_controller/alfred_teleop_node.h
-  src/alfred_teleop_node.cpp
-)
+# add_executable(ra1_pro_msgs_node src/ra1_pro_msgs_node.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
-# add_dependencies(xbox_controller_node xbox_controller_generate_messages_cpp)
+# add_dependencies(ra1_pro_msgs_node ra1_pro_msgs_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(alfred_teleop_node
-   ${catkin_LIBRARIES}
-)
+# target_link_libraries(ra1_pro_msgs_node
+#   ${catkin_LIBRARIES}
+# )
 
 #############
 ## Install ##
@@ -127,7 +128,7 @@ target_link_libraries(alfred_teleop_node
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS xbox_controller xbox_controller_node
+# install(TARGETS ra1_pro_msgs ra1_pro_msgs_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -152,7 +153,7 @@ target_link_libraries(alfred_teleop_node
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_xbox_controller.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_ra1_pro_msgs.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
