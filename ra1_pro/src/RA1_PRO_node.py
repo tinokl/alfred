@@ -1,10 +1,25 @@
 #!/usr/bin/env python
 
 # AUTOR: Konstantin Lassnig
-# RA2-Hobby-AREXX Velocity Command
+# konstantin.lassnig@gmail.com
+# RA1-Pro-AREXX Velocity Command
 
-# Subscribes on topic "velocity_commands" with arm_vel_msg messages
+# Subscribes on topic "vel_cmd" with Ra1ProVelCmd messages
 # Publishes connection information on topic "RA2_hobby" with strings
+
+## Ra1ProVelCmd:
+#Header header
+#string command
+#int8 servo
+#float64 direction
+#float64 position
+
+## Serial Protocoll:
+# Send: "ON" => Init and Power On Motors
+# Send: "OFF" => Power Off Motors
+# Send: "S3N200" => Servo 3 to negative position 200
+# Send: "S1P100" => Servo 1 to positive position 100
+
 
 # Commands:
 # START  ->  inits serial, moves the arm to the start position
@@ -31,23 +46,24 @@
 # string command = START
 # rest is unused or not checked
 
+
 import roslib; roslib.load_manifest('eva')
 import rospy
 import serial
 import time
 
 from std_msgs.msg import String
-from eva.msg import arm_vel_msg
+from ra1_pro_msgs.msg import Ra1ProVelCmd
 
 wait_to_send = 1
 
-class RA2Hobby:
+class RA1_PRO:
 
   def __init__(self):
 
     rospy.loginfo(rospy.get_name() + ": Starting Node")
-    self.RA2_Hobby_pub = rospy.Publisher('RA2_Hobby', String)
-    rospy.Subscriber("velocity_commands", arm_vel_msg, self.checkCommand)
+    self.RA2_Hobby_pub = rospy.Publisher('RA1_PRO', String)
+    rospy.Subscriber("velocity_commands", Ra1ProVelCmd, self.checkCommand)
 
     self.ser = serial.Serial()
     rospy.on_shutdown(self.cleanup)
@@ -83,10 +99,10 @@ class RA2Hobby:
       self.initSerial()
       self.normPosition()
       self.ready = True
-    elif command == "MCP" and self.ready == True:
+    elif command == "Position" and self.ready == True:
       if self.ser.isOpen() == 1:
         self.moveCommandPosition(data)
-    elif command == "MCD" and self.ready == True:
+    elif command == "Direction" and self.ready == True:
       if self.ser.isOpen() == 1:	
         self.moveCommandDirection(data)
 
@@ -176,9 +192,9 @@ class RA2Hobby:
 
 
 if __name__ == '__main__':
-  rospy.init_node('RA2_Hobby_AREXX', anonymous=False)
+  rospy.init_node('RA1_PRO', anonymous=False)
   try:
-    RA2Hobby()
+    RA1_PRO()
   except rospy.ROSInterruptException:
     pass
 

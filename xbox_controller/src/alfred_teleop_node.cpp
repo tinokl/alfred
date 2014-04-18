@@ -28,9 +28,9 @@ void AlfredTeleopNode::init()
   joy_sub_ = nh_.subscribe<sensor_msgs::Joy>("joy", 10,
       &AlfredTeleopNode::joyCB, this);
 
-  vel_com_pub_ = nh_.advertise<ra1_pro_msgs::Ra1ProVelCmd>("/velocity_commands", 1);
+  vel_com_pub_ = nh_.advertise<ra1_pro_msgs::Ra1ProVelCmd>("/vel_cmd", 1);
 
-  vel_com_msg_.header.frame_id = "velocity_commands";
+  vel_com_msg_.header.frame_id = "joy_vel_cmd";
   vel_com_msg_.header.seq = 0;
 
   epsilon_ = 0.01;
