@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<launch>    
+    <node name="gspeech_node" pkg="gspeech" type="gspeech_node.py"></node>
+</launch>

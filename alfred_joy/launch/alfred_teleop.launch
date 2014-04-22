@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <launch>
 
-   <!-- <node name="xboxdrv" pkg="xbox_controller" type="xboxdrv.sh"></node> -->
+   <!-- <node name="xboxdrv" pkg="alfred_joy" type="xboxdrv.sh"></node> -->
     
-    <node name="alfred_teleop" pkg="xbox_controller" type="alfred_teleop_node">
+    <node name="alfred_teleop" pkg="alfred_joy" type="alfred_teleop_node">
      <!--   <param name="sh_pitch_max" value="0.76" />
         <param name="sh_pitch_min" value="-0.82" />
         <param name="sh_yaw_max" value="2.58" />

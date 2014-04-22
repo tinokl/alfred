@@ -71,7 +71,6 @@ public:
     void init();
 
 protected:
-    void cmdGeneratorTimerCB(const ros::TimerEvent& e);
 
     void joyCB(const sensor_msgs::Joy::ConstPtr& joy);
 
