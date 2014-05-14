@@ -20,6 +20,7 @@
 # Send: "S3N200" => Servo 3 to negative position 200
 # Send: "S1P100" => Servo 1 to positive position 100
 
+############# OLD:
 
 # Commands:
 # START  ->  inits serial, moves the arm to the start position
@@ -47,7 +48,7 @@
 # rest is unused or not checked
 
 
-import roslib; roslib.load_manifest('eva')
+import roslib; roslib.load_manifest('ra1_pro')
 import rospy
 import serial
 import time
@@ -63,7 +64,7 @@ class RA1_PRO:
 
     rospy.loginfo(rospy.get_name() + ": Starting Node")
     self.RA2_Hobby_pub = rospy.Publisher('RA1_PRO', String)
-    rospy.Subscriber("velocity_commands", Ra1ProVelCmd, self.checkCommand)
+    rospy.Subscriber("vel_cmd", Ra1ProVelCmd, self.checkCommand)
 
     self.ser = serial.Serial()
     rospy.on_shutdown(self.cleanup)
@@ -78,7 +79,7 @@ class RA1_PRO:
     #                 1 2 3 4 5 6
     self.servo_pos = [0,0,0,0,0,0]
     # less than these values
-    self.servo_max_pos = [3,8,5,9,9,9]
+    self.servo_max_pos = [500,500,500,9,9,9]
     self.ready = False
 
     while not rospy.is_shutdown():
