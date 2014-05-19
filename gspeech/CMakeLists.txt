@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(xbox_controller)
+project(gspeech)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -7,7 +7,6 @@ project(xbox_controller)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
-  sensor_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -65,10 +64,10 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-#generate_messages(
+# generate_messages(
 #   DEPENDENCIES
 #   std_msgs  # Or other packages containing msgs
-#)
+# )
 
 ###################################
 ## catkin specific configuration ##
@@ -80,8 +79,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include
-#  LIBRARIES xbox_controller
+#  INCLUDE_DIRS include
+#  LIBRARIES gspeech
 #  CATKIN_DEPENDS other_catkin_pkg
 #  DEPENDS system_lib
 )
@@ -92,25 +91,24 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-include_directories(
-  include
-  ${catkin_INCLUDE_DIRS}
-)
+# include_directories(include)
+
+## Declare a cpp library
+# add_library(gspeech
+#   src/${PROJECT_NAME}/gspeech.cpp
+# )
 
 ## Declare a cpp executable
-add_executable(alfred_teleop_node
-  include/xbox_controller/alfred_teleop_node.h
-  src/alfred_teleop_node.cpp
-)
+#add_executable(gspeech_node src/gspeech_node.py)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
-# add_dependencies(xbox_controller_node xbox_controller_generate_messages_cpp)
+# add_dependencies(gspeech_node gspeech_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(alfred_teleop_node
-   ${catkin_LIBRARIES}
-)
+#target_link_libraries(gspeech_node
+#   ${catkin_LIBRARIES}
+#)
 
 #############
 ## Install ##
@@ -127,7 +125,7 @@ target_link_libraries(alfred_teleop_node
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS xbox_controller xbox_controller_node
+# install(TARGETS gspeech gspeech_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -152,7 +150,7 @@ target_link_libraries(alfred_teleop_node
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_xbox_controller.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_gspeech.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

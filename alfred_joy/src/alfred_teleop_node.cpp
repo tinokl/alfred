@@ -1,4 +1,4 @@
-#include <xbox_controller/alfred_teleop_node.h>
+#include <alfred_joy/alfred_teleop_node.h>
 
 namespace AlfredTeleop
 {
