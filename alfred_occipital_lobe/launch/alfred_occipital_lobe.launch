@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+
+<!--  <include file="$(find alfred_occipital_lobe)/launch/camera.launch" />  -->
+
+  <node name="alfred_occipital_lobe_node" pkg="alfred_occipital_lobe" type="alfred_occipital_lobe_node" output="screen">    
+    <param name="topic" type="string" value="/camera/image_raw/" /> 
+    <param name="fov_x" type="double" value="62.65"/>
+    <param name="fov_y" type="double" value="49.04"/>
+
+    <param name="train" type="bool" value="false"/>
+    <param name="debug" type="bool" value="true"/>
+
+  </node>
+</launch>
