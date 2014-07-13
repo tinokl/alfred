@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import roslib; roslib.load_manifest('high_level')
+import roslib; roslib.load_manifest('alfred_cortex')
 import rospy
 
 from ra1_pro_msgs.msg import Ra1ProVelCmd

@@ -33,8 +33,8 @@ void AlfredTeleopNode::init()
   vel_com_msg_.header.frame_id = "joy_vel_cmd";
   vel_com_msg_.header.seq = 0;
 
-  epsilon_ = 0.01;
-  scale_ = 500;
+  epsilon_ = 0.5;
+  scale_ = 10;
 }
 
 void AlfredTeleopNode::sendCmd(unsigned int servo_num)
@@ -43,7 +43,7 @@ void AlfredTeleopNode::sendCmd(unsigned int servo_num)
   vel_com_msg_.header.seq++;
   vel_com_msg_.direction = 0.0;
   vel_com_msg_.position = 0.0;
-  vel_com_msg_.command = "Direction"; // Move command direction
+  vel_com_msg_.command = "DIR"; // Move command direction
   vel_com_msg_.servo = servo_num;
 
   switch(servo_num)
@@ -75,6 +75,7 @@ void AlfredTeleopNode::joyCB(const sensor_msgs::Joy::ConstPtr& joy)
   {
     servo_1_ = joy->axes[TRIGGER_LT];
     sendCmd(1);
+    R
   }
 
   if (fabs(joy->axes[AXIS_UD_RIGHT] - servo_5_) > epsilon_)
