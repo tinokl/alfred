@@ -97,7 +97,7 @@ class RA1_PRO:
         self.servo_speed = [2, 2, 2, 2, 2, 2]
 
         # less than these values
-        self.servo_max_pos = [3, 8, 5, 9, 9, 9]
+        self.servo_max_pos = [900, 800, 500, 900, 900, 900]
         self.ready = False
         # what was read on the serial
         self.connected = False
@@ -109,44 +109,54 @@ class RA1_PRO:
                 rospy.loginfo(string)
                 self.check_response(str(serial_read))
                 self.driver_pub.publish(String(string))
-            rospy.sleep(0.1)
+            rospy.sleep(1)
 
     def check_response(self, string):
         cmd_on = "Alfred # ON executed"
         cmd_off = "Alfred # OFF executed"
+        cmd_wait = "Alfred # wait ON"
 
         if string == cmd_on:
             self.connected = True
         if string == cmd_off:
             self.connected = False
+            self.ready = 0
+        if string == cmd_wait:
+            self.connected = False
+            self.ready = 0
 
     def check_command(self, data):
         cmd = data.command
         if cmd == "CLOSE":
-            self.ready = False
-            self.cleanup()
+            if self.ready == 1:
+                self.ready = False
+                self.cleanup()
         elif cmd == "START":
-            self.init_serial()
-            if self.ser.isOpen() == 1:
-                self.norm_position()
-                self.ready = True
+            if self.ready != 1:
+                self.init_serial()
+                if self.ser.isOpen() == 1:
+                    self.norm_position()
+                    self.ready = True
         elif cmd == "POS" and self.ready:
-            if self.ser.isOpen() == 1:
+            if self.ready == 1:
                 self.move_position(data)
         elif cmd == "DIR" and self.ready:
-            if self.ser.isOpen() == 1:
+            if self.ready == 1:
                 self.move_direction(data)
 
     def send_move_command(self):
         cmd = ''
         for s in range(0, self.servos):
-            if self.servo_new_pos[s] < 0:
-                single = "S{0}N{1}V{2}".format((s+1), abs(self.servo_new_pos[s]), self.servo_speed[s])
+            norm_position = str(int(abs(self.servo_new_pos[s]))).rjust(3, '0')
+            if self.servo_new_pos[s] < 0.0:
+                single = "S{0}N{1}V{2}".format((s+1), norm_position, int(self.servo_speed[s]))
             else:
-                single = "S{0}P{1}V{2}".format((s+1), abs(self.servo_new_pos[s]), self.servo_speed[s])
-            cmd = cmd.join(single)
+                single = "S{0}P{1}V{2}".format((s+1), norm_position, int(self.servo_speed[s]))
+            cmd = cmd + single
         self.servo_prev_pos = self.servo_curr_pos
         self.servo_curr_pos = self.servo_new_pos
+        rospy.loginfo(rospy.get_name() + ": This is what i send: " + cmd + "\n")
+        #rospy.sleep(1.0)
         self.send_serial(cmd)
 
     def move_direction(self, data):
@@ -159,14 +169,15 @@ class RA1_PRO:
             rospy.loginfo(rospy.get_name() + ": Furthest position reached")
 
     def move_position(self, data):
-        if data.position < self.servo_max_pos[(data.servo-1)]:
-            if data.position != self.servo_pos[(data.servo-1)]:
+        if abs(data.position) <= self.servo_max_pos[(data.servo-1)]:
+            pos_round = round(data.position/100) * 100
+            if pos_round != self.servo_curr_pos[(data.servo-1)]:
                 rospy.loginfo(rospy.get_name() + ": Commit position move command")
-                self.servo_new_pos[(data.servo - 1)] = data.position
+                self.servo_new_pos[(data.servo - 1)] = pos_round
                 self.send_move_command()
-            else:
-                error = ": ERROR position out of bounds - position must be smaller than {0}".format(self.servo_max_pos[(data.servo-1)])
-                rospy.loginfo(rospy.get_name() + error)
+        else:
+            error = ": ERROR position out of bounds - position must be smaller than {0}".format(self.servo_max_pos[(data.servo-1)])
+            rospy.loginfo(rospy.get_name() + error)
 
     def sleep_position(self):
         rospy.loginfo(rospy.get_name() + ": Turn to SLEEP position")
@@ -181,23 +192,27 @@ class RA1_PRO:
 
     def norm_position(self):
         rospy.loginfo(rospy.get_name() + ": Turn to NORMAL position")
-        time.sleep(wait_to_send)
-        self.send_serial("S1N200V2S2P000V2S3P000V2S4P000V2S5P000V2S6P000V2")
-        time.sleep(wait_to_send)
+        self.servo_new_pos = [-200.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.send_move_command()
         rospy.loginfo(rospy.get_name() + ": NORMAL position reached")
 
     def send_serial(self, string):
         norm_string = string
         if len(string) < 48:
             norm_string = string.ljust(48, '0')
+        self.ser.flushInput()
         self.ser.write(norm_string)
+        rospy.sleep(0.5)
 
     def init_serial(self):
         rospy.loginfo(rospy.get_name() + ": INIT serial connection")
         self.ser.baudrate = 38400
         self.ser.port = '/dev/ttyUSB0'
-        if self.ser.isOpen() == 0:
-            self.ser.open()
+        try:
+            if self.ser.isOpen() == 0:
+                self.ser.open()
+        except rospy.ROSException:
+            rospy.logerr(rospy.get_name() + "Cannot Open Port!")
 
         # Try to start the robot as long as init occurs
         while self.connected == False:
