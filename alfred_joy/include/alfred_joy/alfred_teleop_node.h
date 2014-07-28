@@ -74,7 +74,9 @@ protected:
 
     void joyCB(const sensor_msgs::Joy::ConstPtr& joy);
 
-    void sendCmd(unsigned int);
+    int mapGripper(float input);
+    void sendDirCmd(unsigned int);
+    void sendPosCmd(unsigned int, float);
 
     static double limit(double value, double min, double max);
 };

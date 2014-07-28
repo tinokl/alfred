@@ -33,17 +33,49 @@ void AlfredTeleopNode::init()
   vel_com_msg_.header.frame_id = "joy_vel_cmd";
   vel_com_msg_.header.seq = 0;
 
-  epsilon_ = 0.01;
-  scale_ = 500;
+  epsilon_ = 0.3;
+  scale_ = 10;
 }
 
-void AlfredTeleopNode::sendCmd(unsigned int servo_num)
+int AlfredTeleopNode::mapGripper(float input)
+{
+  // gamepad: -1 to +1 => -800 to -100
+  input = input * (-1.0);
+  if (input > 0.75)
+    input = 1;
+  if (input < -0.75)
+    input = -1;
+  // range new from 1 to +3
+  input = input + 2;
+  //X between A and B, Y to fall between C and D
+  //Y = (X-A)/(B-A) * (D-C) + C
+  input = (input - 1.0)/(3.0 - 1.0) * (900.0 - 10.0) + 10.0;
+  // 100 to 800 and negate it later
+  return -input;
+}
+
+void AlfredTeleopNode::sendPosCmd(unsigned int servo_num, float input)
+{
+  vel_com_msg_.header.stamp = ros::Time::now();
+  vel_com_msg_.header.seq++;
+  vel_com_msg_.direction = 0.0;
+  if (servo_num == 1)
+    vel_com_msg_.position = mapGripper(input);
+  else
+    vel_com_msg_.position = (int)input;
+  vel_com_msg_.command = "POS"; // Move command position
+  vel_com_msg_.servo = servo_num;
+
+  vel_com_pub_.publish( vel_com_msg_ );
+}
+
+void AlfredTeleopNode::sendDirCmd(unsigned int servo_num)
 {
   vel_com_msg_.header.stamp = ros::Time::now();
   vel_com_msg_.header.seq++;
   vel_com_msg_.direction = 0.0;
   vel_com_msg_.position = 0.0;
-  vel_com_msg_.command = "Direction"; // Move command direction
+  vel_com_msg_.command = "DIR"; // Move command direction
   vel_com_msg_.servo = servo_num;
 
   switch(servo_num)
@@ -56,6 +88,7 @@ void AlfredTeleopNode::sendCmd(unsigned int servo_num)
     case 6: vel_com_msg_.direction = (double)((int)(scale_ * servo_6_)); break;
   default: ROS_ERROR("Alfred Teleop Node: Wrong Servo Number!");
   }
+
   vel_com_pub_.publish( vel_com_msg_ );
 }
 
@@ -68,25 +101,32 @@ void AlfredTeleopNode::joyCB(const sensor_msgs::Joy::ConstPtr& joy)
 
   if (joy->buttons[POWER])
   {
-
+    vel_com_msg_.header.stamp = ros::Time::now();
+    vel_com_msg_.header.seq++;
+    vel_com_msg_.direction = 0.0;
+    vel_com_msg_.position = 0.0;
+    vel_com_msg_.command = "START";
+    vel_com_msg_.servo = 0.0;
+    vel_com_pub_.publish( vel_com_msg_ );
   }
 
   if (fabs(joy->axes[TRIGGER_LT] - servo_1_) > epsilon_)
   {
+    ROS_ERROR_STREAM("This is the true value: " << joy->axes[TRIGGER_LT]);
     servo_1_ = joy->axes[TRIGGER_LT];
-    sendCmd(1);
+    sendPosCmd(1,joy->axes[TRIGGER_LT]);
   }
 
   if (fabs(joy->axes[AXIS_UD_RIGHT] - servo_5_) > epsilon_)
   {
     servo_5_ = joy->axes[AXIS_LR_RIGHT];
-    sendCmd(5);
+    sendDirCmd(5);
   }
 
   if (fabs(joy->axes[AXIS_LR_RIGHT] - servo_6_) > epsilon_)
   {
     servo_6_ = joy->axes[AXIS_LR_RIGHT];
-    sendCmd(6);
+    sendDirCmd(6);
   }
 }
 

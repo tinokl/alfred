@@ -34,8 +34,8 @@ void AlfredOccipitalLobe::init()
 
     if (train_)
         image_sub_ = it_.subscribe(topic_, 1, &AlfredOccipitalLobe::detection, this);
-    else
-        image_sub_ = it_.subscribe(topic_, 1, &AlfredOccipitalLobe::training, this);
+    //else
+    //    image_sub_ = it_.subscribe(topic_, 1, &AlfredOccipitalLobe::training, this);
 
     //image_pub_ = it_.advertise("/image_converter/output_video", 1);
 
@@ -314,6 +314,7 @@ void AlfredOccipitalLobe::classification(cv::Mat input)
     //maxIndex is the predicted class.
 }
 
+/*
 void AlfredOccipitalLobe::training(cv::Mat input)
 {
 //matrix to hold the training sample
@@ -456,8 +457,10 @@ read_dataset("C:\\Users\\NITHIN\\Desktop\\OCR\\NN\\OCR\\test_dataset.txt", test_
         }
         cout<<"\n";
     }
-    */
+*/
 }
+
+
 
 int main(int argc, char **argv)
 {
