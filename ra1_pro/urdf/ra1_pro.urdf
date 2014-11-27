@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <robot name="alfred">
-  <link name="base_link">
+  <link name="base">
     <visual>
       <geometry>
         <box size="0.27 .25 .065"/>
       </geometry>
       <origin xyz="0 0 0.0325"/>
-      <material name="blue">
-        <color rgba="0 0 .8 1"/>
+      <material name="orange">
+        <color rgba="0.9 0.27 0.0 1"/> <!-- 0.54 -->
       </material>
     </visual>
   </link>
@@ -18,9 +18,7 @@
         <cylinder length="0.035" radius="0.085"/>
       </geometry>
       <origin xyz="0 0 0.0175"/>
-            <material name="red">
-        <color rgba=".8 0 0 1"/>
-      </material>
+      <material name="orange"/>
     </visual>
   </link>
 
@@ -30,7 +28,7 @@
         <box size="0.06 .04 .035"/>
       </geometry>
       <origin xyz="-0.015 0 0.0175"/>
-      <material name="blue"/>
+      <material name="orange"/>
     </visual>
   </link>
 
@@ -40,7 +38,7 @@
         <box size="0.025 .06 .105"/>
       </geometry>
       <origin xyz="0 0 0.0395"/>
-      <material name="red"/>
+      <material name="orange"/>
     </visual>
   </link>
 
@@ -50,7 +48,7 @@
         <box size="0.03 .04 .12"/>
       </geometry>
       <origin xyz="0 0 0.040"/>
-      <material name="blue"/>
+      <material name="orange"/>
     </visual>
   </link>
 
@@ -60,7 +58,7 @@
         <box size="0.025 .06 .07"/>
       </geometry>
       <origin xyz="0 0 0.025"/>
-      <material name="red"/>
+      <material name="orange"/>
     </visual>
   </link>
 
@@ -70,7 +68,7 @@
         <box size="0.017 .05 .075"/>
       </geometry>
       <origin xyz="0 0 0.0375"/>
-      <material name="blue"/>
+      <material name="orange"/>
     </visual>
   </link>
 
@@ -80,7 +78,7 @@
         <box size="0.04 .05 .035"/>
       </geometry>
       <origin xyz="0.02 0 0.0175"/>
-      <material name="red"/>
+      <material name="orange"/>
     </visual>
   </link>
 
@@ -100,7 +98,7 @@
         <box size="0.01 .02 .05"/>
       </geometry>
       <origin xyz="0 0 0.025"/>
-      <material name="red"/>
+      <material name="orange"/>
     </visual>
   </link>
 
@@ -110,50 +108,54 @@
         <box size="0.01 .02 .05"/>
       </geometry>
       <origin xyz="0 0 0.025"/>
-      <material name="red"/>
+      <material name="orange"/>
     </visual>
   </link>
 
   <joint name="box_to_cylinder" type="fixed">
-    <parent link="base_link"/>
+    <parent link="base"/>
     <child link="cylinder"/>
     <origin xyz="0 0 0.06"/>
   </joint>
 
-  <joint name="cylinder_to_base_s6" type="revolute">
+  <joint name="servo_6" type="revolute">
     <parent link="cylinder"/>
     <child link="base_s6"/>
     <axis xyz="0 0 1"/>
+    <limit effort="1000.0" lower="-1.7453292519943" upper="1.7453292519943" velocity="0.5"/>
     <origin xyz="0 0 0.055"/>
-    <limit effort="1000.0" lower="0.0" upper="0.548" velocity="0.5"/>
   </joint>
 
-  <joint name="base_s6_to_shoulder_s5" type="continuous">
+  <joint name="servo_5" type="revolute">
     <parent link="base_s6"/>
     <child link="shoulder_s5"/>
+    <limit effort="1000.0" lower="-1.7453292519943" upper="1.7453292519943" velocity="0.5"/>
     <axis xyz="0 1 0"/>
     <origin xyz="0 0 0.015"/>
   </joint>
 
-  <joint name="shoulder_s5_to_elbow_s4" type="continuous">
+  <joint name="servo_4" type="revolute">
     <parent link="shoulder_s5"/>
     <child link="elbow_s4"/>
+    <limit effort="1000.0" lower="-1.7453292519943" upper="1.7453292519943" velocity="0.5"/>
     <axis xyz="0 1 0"/>
     <origin xyz="0 0 0.08"/>
   </joint>
 
-  <joint name="elbow_s4_to_wrist_s3" type="continuous">
+  <joint name="servo_3" type="revolute">
     <parent link="elbow_s4"/>
     <child link="wrist_s3"/>
+    <limit effort="1.0" lower="-1.7453292519943" upper="1.7453292519943" velocity="0.5"/>
     <axis xyz="0 1 0"/>
     <origin xyz="0 0 0.08"/>
   </joint>
 
-  <joint name="wrist_s3_to_wrist_s2" type="continuous">
+  <joint name="servo_2" type="revolute">
     <parent link="wrist_s3"/>
     <child link="wrist_s2"/>
+    <limit effort="1000.0" lower="-3.1415926535898" upper="0.0" velocity="0.5"/>    
     <axis xyz="0 0 1"/>
-    <origin xyz="0 0 0.065"/>
+    <origin xyz="0 0 0.065" rpy="0 0 -3.1415926535898"/>
   </joint>
 
   <joint name="wrist_s2_to_wrist_box_s2" type="fixed">
@@ -168,7 +170,7 @@
     <origin xyz="0.04 0 0.04" rpy="0 -0.34906585039887 0"/>
   </joint>
 
-  <joint name="wrist_s2_to_gripper_left" type="prismatic">
+  <joint name="gripper_finger_left" type="prismatic">
     <parent link="wrist_s2"/>
     <child link="gripper_left"/>
     <axis xyz="0 1 0"/>
@@ -176,7 +178,7 @@
     <origin xyz="0 -0.025 .075"/>
   </joint>
 
-  <joint name="wrist_s2_to_gripper_right" type="prismatic">
+  <joint name="gripper_finger_right" type="prismatic">
     <parent link="wrist_s2"/>
     <child link="gripper_right"/>
     <axis xyz="0 1 0"/>
