@@ -1,0 +1,85 @@
+<?xml version="1.0" ?>
+<!--This does not replace URDF, and is not an extension of URDF.
+    This is a format for representing semantic information about the robot structure.
+    A URDF file must exist for this robot as well, where the joints and the links that are referenced are defined
+-->
+<robot name="alfred">
+    <!--GROUPS: Representation of a set of joints and links. This can be useful for specifying DOF to plan for, defining arms, end effectors, etc-->
+    <!--LINKS: When a link is specified, the parent joint of that link (if it exists) is automatically included-->
+    <!--JOINTS: When a joint is specified, the child link of that joint (which will always exist) is automatically included-->
+    <!--CHAINS: When a chain is specified, all the links along the chain (including endpoints) are included in the group. Additionally, all the joints that are parents to included links are also included. This means that joints along the chain and the parent joint of the base link are included in the group-->
+    <!--SUBGROUPS: Groups can also be formed by referencing to already defined group names-->
+    <group name="arm">
+        <joint name="box_to_cylinder" />
+        <joint name="servo_6" />
+        <joint name="servo_5" />
+        <joint name="servo_4" />
+        <joint name="servo_3" />
+        <joint name="servo_2" />
+        <joint name="wrist_s2_to_wrist_box_s2" />
+        <joint name="_wrist_box_s2_to_camera" />
+    </group>
+    <group name="gripper">
+        <joint name="gripper_finger_left" />
+        <joint name="gripper_finger_right" />
+    </group>
+    <!--GROUP STATES: Purpose: Define a named state for a particular group, in terms of joint values. This is useful to define states like 'folded arms'-->
+    <group_state name="init" group="arm">
+        <joint name="servo_2" value="0" />
+        <joint name="servo_3" value="0" />
+        <joint name="servo_4" value="0" />
+        <joint name="servo_5" value="0" />
+        <joint name="servo_6" value="0" />
+    </group_state>
+    <group_state name="home" group="arm">
+        <joint name="servo_2" value="0" />
+        <joint name="servo_3" value="1.2523" />
+        <joint name="servo_4" value="1.3114" />
+        <joint name="servo_5" value="-1.0748" />
+        <joint name="servo_6" value="0" />
+    </group_state>
+    <!--END EFFECTOR: Purpose: Represent information about an end effector.-->
+    <end_effector name="gripper_eff" parent_link="wrist_s2" group="gripper" parent_group="arm" />
+    <!--DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->
+    <disable_collisions link1="base" link2="base_s6" reason="Never" />
+    <disable_collisions link1="base" link2="cylinder" reason="Adjacent" />
+    <disable_collisions link1="base" link2="shoulder_s5" reason="Never" />
+    <disable_collisions link1="base" link2="wrist_box_s2" reason="User" />
+    <disable_collisions link1="base_s6" link2="camera" reason="User" />
+    <disable_collisions link1="base_s6" link2="cylinder" reason="Adjacent" />
+    <disable_collisions link1="base_s6" link2="gripper_left" reason="User" />
+    <disable_collisions link1="base_s6" link2="gripper_right" reason="User" />
+    <disable_collisions link1="base_s6" link2="shoulder_s5" reason="Adjacent" />
+    <disable_collisions link1="base_s6" link2="wrist_box_s2" reason="User" />
+    <disable_collisions link1="base_s6" link2="wrist_s2" reason="User" />
+    <disable_collisions link1="base_s6" link2="wrist_s3" reason="Never" />
+    <disable_collisions link1="camera" link2="elbow_s4" reason="Never" />
+    <disable_collisions link1="camera" link2="gripper_left" reason="Never" />
+    <disable_collisions link1="camera" link2="gripper_right" reason="Never" />
+    <disable_collisions link1="camera" link2="shoulder_s5" reason="User" />
+    <disable_collisions link1="camera" link2="wrist_box_s2" reason="Adjacent" />
+    <disable_collisions link1="camera" link2="wrist_s2" reason="Never" />
+    <disable_collisions link1="camera" link2="wrist_s3" reason="Never" />
+    <disable_collisions link1="elbow_s4" link2="gripper_left" reason="Never" />
+    <disable_collisions link1="elbow_s4" link2="gripper_right" reason="Never" />
+    <disable_collisions link1="elbow_s4" link2="shoulder_s5" reason="Adjacent" />
+    <disable_collisions link1="elbow_s4" link2="wrist_box_s2" reason="Never" />
+    <disable_collisions link1="elbow_s4" link2="wrist_s2" reason="Never" />
+    <disable_collisions link1="elbow_s4" link2="wrist_s3" reason="Adjacent" />
+    <disable_collisions link1="gripper_left" link2="gripper_right" reason="Never" />
+    <disable_collisions link1="gripper_left" link2="shoulder_s5" reason="User" />
+    <disable_collisions link1="gripper_left" link2="wrist_box_s2" reason="Never" />
+    <disable_collisions link1="gripper_left" link2="wrist_s2" reason="Adjacent" />
+    <disable_collisions link1="gripper_left" link2="wrist_s3" reason="Never" />
+    <disable_collisions link1="gripper_right" link2="shoulder_s5" reason="User" />
+    <disable_collisions link1="gripper_right" link2="wrist_box_s2" reason="Never" />
+    <disable_collisions link1="gripper_right" link2="wrist_s2" reason="Adjacent" />
+    <disable_collisions link1="gripper_right" link2="wrist_s3" reason="Never" />
+    <disable_collisions link1="shoulder_s5" link2="wrist_box_s2" reason="Never" />
+    <disable_collisions link1="shoulder_s5" link2="cylinder" reason="User" />
+    <disable_collisions link1="shoulder_s5" link2="wrist_s2" reason="Never" />
+    <disable_collisions link1="shoulder_s5" link2="wrist_s3" reason="Never" />
+    <disable_collisions link1="wrist_box_s2" link2="wrist_s2" reason="Adjacent" />
+    <disable_collisions link1="wrist_box_s2" link2="wrist_s3" reason="Never" />
+    <disable_collisions link1="wrist_s2" link2="wrist_s3" reason="Adjacent" />
+</robot>

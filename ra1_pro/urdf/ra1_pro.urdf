@@ -10,6 +10,11 @@
         <color rgba="0.9 0.27 0.0 1"/> <!-- 0.54 -->
       </material>
     </visual>
+    <collision>
+      <geometry>
+        <box size="0.27 .25 .065"/>
+      </geometry>
+    </collision>
   </link>
 
   <link name="cylinder">
@@ -20,6 +25,11 @@
       <origin xyz="0 0 0.0175"/>
       <material name="orange"/>
     </visual>
+    <collision>
+      <geometry>
+        <cylinder length="0.035" radius="0.085"/>
+      </geometry>
+    </collision>
   </link>
 
   <link name="base_s6">
@@ -30,6 +40,11 @@
       <origin xyz="-0.015 0 0.0175"/>
       <material name="orange"/>
     </visual>
+    <collision>
+      <geometry>
+        <box size="0.06 .04 .035"/>
+      </geometry>
+    </collision>
   </link>
 
   <link name="shoulder_s5">
@@ -40,6 +55,11 @@
       <origin xyz="0 0 0.0395"/>
       <material name="orange"/>
     </visual>
+    <collision>
+      <geometry>
+        <box size="0.025 .06 .105"/>
+      </geometry>
+    </collision>
   </link>
 
   <link name="elbow_s4">
@@ -50,6 +70,11 @@
       <origin xyz="0 0 0.040"/>
       <material name="orange"/>
     </visual>
+    <collision>
+      <geometry>
+        <box size="0.03 .04 .12"/>
+      </geometry>
+    </collision>
   </link>
 
   <link name="wrist_s3">
@@ -60,6 +85,11 @@
       <origin xyz="0 0 0.025"/>
       <material name="orange"/>
     </visual>
+    <collision>
+      <geometry>
+        <box size="0.025 .06 .07"/>
+      </geometry>
+    </collision>
   </link>
 
   <link name="wrist_s2">
@@ -70,6 +100,11 @@
       <origin xyz="0 0 0.0375"/>
       <material name="orange"/>
     </visual>
+    <collision>
+      <geometry>
+        <box size="0.017 .05 .075"/>
+      </geometry>
+    </collision>
   </link>
 
   <link name="wrist_box_s2">
@@ -80,6 +115,11 @@
       <origin xyz="0.02 0 0.0175"/>
       <material name="orange"/>
     </visual>
+    <collision>
+      <geometry>
+        <box size="0.04 .05 .035"/>
+      </geometry>
+    </collision>
   </link>
 
   <link name="camera">
@@ -90,6 +130,11 @@
       <origin xyz="0.0125 0 0.0175"/>
       <material name="black"/>
     </visual>
+    <collision>
+      <geometry>
+        <box size="0.025 .04 .035"/>
+      </geometry>
+    </collision>
   </link>
 
   <link name="gripper_left">
@@ -100,6 +145,11 @@
       <origin xyz="0 0 0.025"/>
       <material name="orange"/>
     </visual>
+    <collision>
+      <geometry>
+        <box size="0.01 .02 .05"/>
+      </geometry>
+    </collision>
   </link>
 
   <link name="gripper_right">
@@ -110,6 +160,11 @@
       <origin xyz="0 0 0.025"/>
       <material name="orange"/>
     </visual>
+    <collision>
+      <geometry>
+        <box size="0.01 .02 .05"/>
+      </geometry>
+    </collision>
   </link>
 
   <joint name="box_to_cylinder" type="fixed">
@@ -185,5 +240,4 @@
     <limit effort="1000.0" lower="-0.015" upper="0" velocity="0.5"/>
     <origin xyz="0 0.025 .075"/>
   </joint>
-
 </robot>
