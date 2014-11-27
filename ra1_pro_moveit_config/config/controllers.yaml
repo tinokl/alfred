@@ -1,12 +1,18 @@
 controller_list:
-  - name: fake_arm_controller
+  - name: arm_controller
+    action_ns: follow_joint_trajectory
+    type: FollowJointTrajectory
+    default: true
     joints:
       - servo_6
       - servo_5
       - servo_4
       - servo_3
       - servo_2
-  - name: fake_gripper_controller
+  - name: gripper_controller
+    action_ns: gripper_action
+    type: GripperCommand
+    default: true
     joints:
       - gripper_finger_left
       - gripper_finger_right
