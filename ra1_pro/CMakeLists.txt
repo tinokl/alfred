@@ -106,7 +106,7 @@ catkin_package(
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
-# add_dependencies(ra1_pro_node ra1_pro_generate_messages_cpp)
+#add_dependencies(ra1_pro_node ra1_pro_msgs_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(ra1_pro_node

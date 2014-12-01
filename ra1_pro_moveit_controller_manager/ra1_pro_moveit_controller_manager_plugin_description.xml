@@ -1,4 +1,4 @@
-<library path="libmoveit_fake_controller_manager">
+<library path="libra1_pro_moveit_controller_manager">
 
   <class name="ra1_pro_moveit_controller_manager/RA1ProMoveItControllerManager"
          type="ra1_pro_moveit_controller_manager::RA1ProMoveItControllerManager"

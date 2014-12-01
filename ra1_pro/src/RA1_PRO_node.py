@@ -77,7 +77,7 @@ class RA1_PRO:
 
     def __init__(self):
         rospy.loginfo(rospy.get_name() + ": Starting Node")
-        self.driver_pub = rospy.Publisher('ra1_pro', String)
+        self.driver_pub = rospy.Publisher('ra1_pro', String, queue_size=10)
         rospy.Subscriber("vel_cmd", Ra1ProVelCmd, self.check_command)
         rospy.Subscriber("/move_group/controller_joint_states", JointState, self.get_trajectory)
 
@@ -151,25 +151,29 @@ class RA1_PRO:
         servo = data.name[0]
         rospy.loginfo(rospy.get_name() + ": Got trajectory")
 
-        if servo == "gripper_finger_left":
-            # todo
-            rospy.loginfo(rospy.get_name() + "todo")
-            # could be done the same!!
-        else:
-            for s in range(1, self.servos):
-                # min -900 ..... +900 max
-                norm_position = ((data.position[s-1]*360/3.141592654))  # todo scale somehow
-                #print "norm position: " + str(norm_position)
-                if abs(norm_position) <= self.servo_max_pos[s]:
-                    pos_round = norm_position#round(norm_position/100) * 100
-                    if pos_round != self.servo_curr_pos[s]:
-                        self.servo_new_pos[s] = pos_round
-                        new_position = True
-                else:
-                    error = ": ERROR position out of bounds - position must be smaller than {0}".format(self.servo_max_pos[s])
-                    rospy.logerr(rospy.get_name() + error)
+        servo_start = 1
+        servo_end = self.servos
 
-        print "all positions: " + str(self.servo_new_pos)
+        if servo == "gripper_finger_left":
+            servo_start = 0
+            servo_end = 1
+
+        for s in range(servo_start, servo_end):
+            # remap from rad to grad and scale to hundred
+            norm_position = ((data.position[s-1]*180/3.141592654)*10)
+            #print "norm position: " + str(norm_position)
+            # todo watch out for servo 2 this is kinda different
+            if abs(norm_position) <= self.servo_max_pos[s]:
+                pos_round = round(norm_position)
+                if pos_round != self.servo_curr_pos[s]:
+                    self.servo_new_pos[s] = pos_round
+                    new_position = True
+            else:
+                error = ": ERROR position {0} servo {1} out of bounds - position must be smaller than {2}".format(round(norm_position), (s+1), self.servo_max_pos[s])
+                self.servo_new_pos[s] = self.servo_max_pos[s]
+                rospy.logerr(rospy.get_name() + error)
+
+        #print "all positions: " + str(self.servo_new_pos)
         if new_position:
             self.send_move_command()
             rospy.loginfo(rospy.get_name() + ": Commit position move command")
@@ -185,7 +189,7 @@ class RA1_PRO:
             cmd = cmd + single
         self.servo_prev_pos = self.servo_curr_pos
         self.servo_curr_pos = self.servo_new_pos
-        rospy.loginfo(rospy.get_name() + ": This is what i send: " + cmd + "\n")
+        #rospy.loginfo(rospy.get_name() + ": Sending command to ra1 pro: " + cmd + "\n")
         #rospy.sleep(1.0)
         self.send_serial(cmd)
 
@@ -249,7 +253,7 @@ class RA1_PRO:
             rospy.logerr(rospy.get_name() + "Cannot Open Port!")
 
         # Try to start the robot as long as init occurs
-        while self.connected == False:
+        while self.connected is False:
             rospy.loginfo(rospy.get_name() + ": Serial connecting...")
             self.send_serial("ON")
             time.sleep(wait_to_send)

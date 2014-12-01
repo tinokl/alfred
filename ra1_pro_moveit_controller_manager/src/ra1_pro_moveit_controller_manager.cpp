@@ -52,12 +52,12 @@ public:
     joints_(joints)
   {
     std::stringstream ss;
-    ss << "RA1 PRO Fake controller '" << name << "' with joints [ ";
+    ss << "RA1 PRO controller '" << name << "' with joints [ ";
     for (std::size_t i = 0 ; i < joints.size() ; ++i)
       ss << joints[i] << " ";
     ss << "]";
     ROS_INFO("%s", ss.str().c_str());
-    pub_ = nh_.advertise<sensor_msgs::JointState>("fake_controller_joint_states", 100, false);
+    pub_ = nh_.advertise<sensor_msgs::JointState>("controller_joint_states", 100, false);
   }
   
   void getJoints(std::vector<std::string> &joints) const
@@ -67,34 +67,39 @@ public:
   
   virtual bool sendTrajectory(const moveit_msgs::RobotTrajectory &t)
   {
-    ROS_INFO("Fake execution of trajectory");
-/*
+    ROS_INFO("Execution of trajectory");
+
     if (!t.joint_trajectory.points.empty())
     {
       sensor_msgs::JointState js;
       js.header = t.joint_trajectory.header;
       js.name = t.joint_trajectory.joint_names;
-      js.position = t.joint_trajectory.points.back().positions;
-      js.velocity = t.joint_trajectory.points.back().velocities;
-      js.effort = t.joint_trajectory.points.back().effort;
-      pub_.publish(js);
-    }
-*/
-    // get all joint states
-    if (!t.joint_trajectory.points.empty())
-    {
-      sensor_msgs::JointState js;
-      js.header = t.joint_trajectory.header;
-      js.name = t.joint_trajectory.joint_names;
-      int i = 0;
-      while(i < 10) {
-        ROS_INFO_STREAM("Fake trajectory " << i << "th - attempt");
-        js.position = t.joint_trajectory.points[i].positions;
-        js.velocity = t.joint_trajectory.points[i].velocities;
+  
+      if (js.name[0] == "gripper_finger_left")
+      {
+        ROS_INFO_STREAM("Gripper Trajectory");
+        // use only last trajectory for gripper
+        js.position = t.joint_trajectory.points.back().positions;
+        js.velocity = t.joint_trajectory.points.back().velocities;
         js.effort = t.joint_trajectory.points.back().effort;
         pub_.publish(js);
-        i++;
       }
+      else
+      {
+        ROS_INFO_STREAM("Arm Trajectory");
+    
+        int i = 0;
+        int size = t.joint_trajectory.points.size();
+
+        while(i < size) {
+          //ROS_INFO_STREAM("Fake trajectory " << i << "th - attempt");
+          js.position = t.joint_trajectory.points[i].positions;
+          js.velocity = t.joint_trajectory.points[i].velocities;
+          js.effort = t.joint_trajectory.points[i].effort;
+          pub_.publish(js);
+          i++;
+        }
+      } 
     }
     
     return true;
