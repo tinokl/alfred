@@ -86,7 +86,7 @@ void AlfredTeleopNode::sendDirCmd(unsigned int servo_num)
     case 4: vel_com_msg_.direction = (double)((int)(scale_ * servo_4_)); break;
     case 5: vel_com_msg_.direction = (double)((int)(scale_ * servo_5_)); break;
     case 6: vel_com_msg_.direction = (double)((int)(scale_ * servo_6_)); break;
-  default: ROS_ERROR("Alfred Teleop Node: Wrong Servo Number!");
+    default: ROS_ERROR("Alfred Teleop Node: Wrong Servo Number!");
   }
 
   vel_com_pub_.publish( vel_com_msg_ );

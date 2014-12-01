@@ -7,6 +7,7 @@ project(ra1_pro)
 find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
+  sensor_msgs
   ra1_pro_msgs
 )
 
@@ -67,8 +68,9 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate added messages and services with any dependencies listed here
 # generate_messages(
 #   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
-# )
+   #std_msgs  # Or other packages containing msgs
+  #ra1_pro_msgs
+#)
 
 ###################################
 ## catkin specific configuration ##

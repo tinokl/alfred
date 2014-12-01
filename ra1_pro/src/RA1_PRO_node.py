@@ -68,6 +68,7 @@ import serial
 import time
 
 from std_msgs.msg import String
+from sensor_msgs.msg import JointState
 from ra1_pro_msgs.msg import Ra1ProVelCmd
 
 wait_to_send = 2
@@ -78,6 +79,7 @@ class RA1_PRO:
         rospy.loginfo(rospy.get_name() + ": Starting Node")
         self.driver_pub = rospy.Publisher('ra1_pro', String)
         rospy.Subscriber("vel_cmd", Ra1ProVelCmd, self.check_command)
+        rospy.Subscriber("/move_group/controller_joint_states", JointState, self.get_trajectory)
 
         self.ser = serial.Serial()
         rospy.on_shutdown(self.cleanup)
@@ -144,6 +146,34 @@ class RA1_PRO:
             if self.ready == 1:
                 self.move_direction(data)
 
+    def get_trajectory(self, data):
+        new_position = False
+        servo = data.name[0]
+        rospy.loginfo(rospy.get_name() + ": Got trajectory")
+
+        if servo == "gripper_finger_left":
+            # todo
+            rospy.loginfo(rospy.get_name() + "todo")
+            # could be done the same!!
+        else:
+            for s in range(1, self.servos):
+                # min -900 ..... +900 max
+                norm_position = ((data.position[s-1]*360/3.141592654))  # todo scale somehow
+                #print "norm position: " + str(norm_position)
+                if abs(norm_position) <= self.servo_max_pos[s]:
+                    pos_round = norm_position#round(norm_position/100) * 100
+                    if pos_round != self.servo_curr_pos[s]:
+                        self.servo_new_pos[s] = pos_round
+                        new_position = True
+                else:
+                    error = ": ERROR position out of bounds - position must be smaller than {0}".format(self.servo_max_pos[s])
+                    rospy.logerr(rospy.get_name() + error)
+
+        print "all positions: " + str(self.servo_new_pos)
+        if new_position:
+            self.send_move_command()
+            rospy.loginfo(rospy.get_name() + ": Commit position move command")
+
     def send_move_command(self):
         cmd = ''
         for s in range(0, self.servos):
@@ -177,7 +207,7 @@ class RA1_PRO:
                 self.send_move_command()
         else:
             error = ": ERROR position out of bounds - position must be smaller than {0}".format(self.servo_max_pos[(data.servo-1)])
-            rospy.loginfo(rospy.get_name() + error)
+            rospy.logerr(rospy.get_name() + error)
 
     def sleep_position(self):
         rospy.loginfo(rospy.get_name() + ": Turn to SLEEP position")
@@ -200,8 +230,12 @@ class RA1_PRO:
         norm_string = string
         if len(string) < 48:
             norm_string = string.ljust(48, '0')
-        self.ser.flushInput()
-        self.ser.write(norm_string)
+        try:
+            self.ser.flushInput()
+            self.ser.write(norm_string)
+        except:
+            error = ": ERROR the port is maybe not open!"
+            rospy.logerr(rospy.get_name() + error)
         rospy.sleep(0.5)
 
     def init_serial(self):
