@@ -4,8 +4,9 @@
 # konstantin.lassnig@gmail.com
 # RA1-Pro-AREXX Velocity Command
 
-# Subscribes on topic "vel_cmd" with Ra1ProVelCmd messages
-# Publishes connection information on topic "ra1_pro" with strings
+# Subscribes on topic "/ra1_pro/cmd" with Ra1ProVelCmd messages
+# Subscribes on topic "/move_group/controller_joint_states" with JointState messages
+# Publishes connection information on topic "ra1_pro/feedback" with strings
 
 ## Ra1ProVelCmd:
 #Header header
@@ -73,12 +74,14 @@ from ra1_pro_msgs.msg import Ra1ProVelCmd
 
 wait_to_send = 2
 
-class RA1_PRO:
+
+class Ra1Pro:
 
     def __init__(self):
         rospy.loginfo(rospy.get_name() + ": Starting Node")
-        self.driver_pub = rospy.Publisher('ra1_pro', String, queue_size=10)
-        rospy.Subscriber("vel_cmd", Ra1ProVelCmd, self.check_command)
+        rospy.loginfo(rospy.get_name() + ": Waiting for start")
+        self.driver_pub = rospy.Publisher('ra1_pro/feedback', String, queue_size=10)
+        rospy.Subscriber("/ra1_pro/cmd", Ra1ProVelCmd, self.check_command)
         rospy.Subscriber("/move_group/controller_joint_states", JointState, self.get_trajectory)
 
         self.ser = serial.Serial()
@@ -130,23 +133,38 @@ class RA1_PRO:
     def check_command(self, data):
         cmd = data.command
         if cmd == "CLOSE":
-            if self.ready == 1:
+            if self.ready is 1:
                 self.ready = False
                 self.cleanup()
+                rospy.loginfo(rospy.get_name() + ": Closing")
+            else:
+                rospy.logerr(rospy.get_name() + ": System is not ready, did you start?")
         elif cmd == "START":
-            if self.ready != 1:
+            if self.ready is not 1:
                 self.init_serial()
-                if self.ser.isOpen() == 1:
+                if self.ser.isOpen() is 1:
                     self.norm_position()
                     self.ready = True
+                    rospy.loginfo(rospy.get_name() + ": Starting")
+            else:
+                rospy.logerr(rospy.get_name() + ": System is not ready, did you start?")
         elif cmd == "POS" and self.ready:
-            if self.ready == 1:
+            if self.ready is 1:
                 self.move_position(data)
+            else:
+                rospy.logerr(rospy.get_name() + ": System is not ready, did you start?")
         elif cmd == "DIR" and self.ready:
-            if self.ready == 1:
+            if self.ready is 1:
                 self.move_direction(data)
+            else:
+                rospy.logerr(rospy.get_name() + ": System is not ready, did you start?")
 
     def get_trajectory(self, data):
+        # check if system is ready
+        if self.ready is not 1:
+            rospy.logerr(rospy.get_name() + ": System is not ready, did you start?")
+            return
+
         new_position = False
         servo = data.name[0]
         rospy.loginfo(rospy.get_name() + ": Got trajectory")
@@ -233,6 +251,7 @@ class RA1_PRO:
     def send_serial(self, string):
         norm_string = string
         if len(string) < 48:
+            # adding zeros if the msg is not long enough
             norm_string = string.ljust(48, '0')
         try:
             self.ser.flushInput()
@@ -268,6 +287,6 @@ class RA1_PRO:
 if __name__ == '__main__':
     rospy.init_node('RA1_PRO', anonymous=False)
     try:
-        RA1_PRO()
+        Ra1Pro()
     except rospy.ROSInterruptException:
         pass
