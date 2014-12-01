@@ -13,7 +13,7 @@ class cortex:
 
   def __init__(self):
     rospy.loginfo(rospy.get_name() + ": Starting Node")
-    self.vel_cmd = rospy.Publisher('vel_cmd', Ra1ProVelCmd)
+    self.vel_cmd = rospy.Publisher('/ra1_pro/cmd', Ra1ProVelCmd)
     #rospy.Subscriber("joy", Joy, self.gotControl, queue_size = 10)
     #rospy.Subscriber("HarkSource", HarkSource, self.heardNoise)
     #rospy.Subscriber("speech", String, self.heardVoice)

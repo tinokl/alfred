@@ -67,12 +67,13 @@ import roslib; roslib.load_manifest('ra1_pro')
 import rospy
 import serial
 import time
+import math
 
 from std_msgs.msg import String
 from sensor_msgs.msg import JointState
 from ra1_pro_msgs.msg import Ra1ProVelCmd
 
-wait_to_send = 2
+wait_to_send = 1
 
 
 class Ra1Pro:
@@ -110,11 +111,11 @@ class Ra1Pro:
         while not rospy.is_shutdown():
             if self.ser.isOpen() == 1:
                 serial_read = self.ser.readline().rstrip()
-                string = "Serial Read: %s" % serial_read
+                string = rospy.get_name() + ": Serial Read: %s" % serial_read
                 rospy.loginfo(string)
                 self.check_response(str(serial_read))
                 self.driver_pub.publish(String(string))
-            rospy.sleep(1)
+            rospy.sleep(0.1)
 
     def check_response(self, string):
         cmd_on = "Alfred # ON executed"
@@ -125,45 +126,45 @@ class Ra1Pro:
             self.connected = True
         if string == cmd_off:
             self.connected = False
-            self.ready = 0
+            self.ready = False
         if string == cmd_wait:
             self.connected = False
-            self.ready = 0
+            self.ready = False
 
     def check_command(self, data):
         cmd = data.command
         if cmd == "CLOSE":
-            if self.ready is 1:
+            if self.ready is True:
                 self.ready = False
                 self.cleanup()
                 rospy.loginfo(rospy.get_name() + ": Closing")
             else:
                 rospy.logerr(rospy.get_name() + ": System is not ready, did you start?")
         elif cmd == "START":
-            if self.ready is not 1:
+            if self.ready is not True:
                 self.init_serial()
-                if self.ser.isOpen() is 1:
-                    self.norm_position()
+                if self.ser.isOpen() == 1:
+                    #self.norm_position()
                     self.ready = True
                     rospy.loginfo(rospy.get_name() + ": Starting")
             else:
                 rospy.logerr(rospy.get_name() + ": System is not ready, did you start?")
         elif cmd == "POS" and self.ready:
-            if self.ready is 1:
+            if self.ready is True:
                 self.move_position(data)
             else:
                 rospy.logerr(rospy.get_name() + ": System is not ready, did you start?")
         elif cmd == "DIR" and self.ready:
-            if self.ready is 1:
+            if self.ready is True:
                 self.move_direction(data)
             else:
                 rospy.logerr(rospy.get_name() + ": System is not ready, did you start?")
 
     def get_trajectory(self, data):
         # check if system is ready
-        if self.ready is not 1:
-            rospy.logerr(rospy.get_name() + ": System is not ready, did you start?")
-            return
+        #if self.ready is False:
+        #    rospy.logerr(rospy.get_name() + ": System is not ready, did you start?")
+        #    return
 
         new_position = False
         servo = data.name[0]
@@ -179,6 +180,11 @@ class Ra1Pro:
         for s in range(servo_start, servo_end):
             # remap from rad to grad and scale to hundred
             norm_position = ((data.position[s-1]*180/3.141592654)*10)
+
+            # basic corrections
+            if s == 3:
+                norm_position *= (-1.0)
+
             #print "norm position: " + str(norm_position)
             # todo watch out for servo 2 this is kinda different
             if abs(norm_position) <= self.servo_max_pos[s]:
@@ -188,7 +194,7 @@ class Ra1Pro:
                     new_position = True
             else:
                 error = ": ERROR position {0} servo {1} out of bounds - position must be smaller than {2}".format(round(norm_position), (s+1), self.servo_max_pos[s])
-                self.servo_new_pos[s] = self.servo_max_pos[s]
+                self.servo_new_pos[s] = math.copysign(self.servo_max_pos[s], pos_round)
                 rospy.logerr(rospy.get_name() + error)
 
         #print "all positions: " + str(self.servo_new_pos)
@@ -268,7 +274,7 @@ class Ra1Pro:
         try:
             if self.ser.isOpen() == 0:
                 self.ser.open()
-        except rospy.ROSException:
+        except:
             rospy.logerr(rospy.get_name() + "Cannot Open Port!")
 
         # Try to start the robot as long as init occurs
