@@ -180,15 +180,23 @@ class Ra1Pro:
         for s in range(servo_start, servo_end):
             # remap from rad to grad and scale to hundred
             norm_position = ((data.position[s-1]*180/3.141592654)*10)
+            pos_round = round(norm_position)
+
+            speed = round(abs(data.velocity[s-1]*10))
+            if speed < 1:
+                speed = 1
+            self.servo_speed[s] = speed
 
             # basic corrections
-            if s == 3:
-                norm_position *= (-1.0)
+            # is done inside the urdf == servo 4
+            #if s == 3:
+            #    print norm_position
+            #    norm_position *= (-1.0)
+            #    print norm_position
 
             #print "norm position: " + str(norm_position)
             # todo watch out for servo 2 this is kinda different
-            if abs(norm_position) <= self.servo_max_pos[s]:
-                pos_round = round(norm_position)
+            if abs(pos_round) <= self.servo_max_pos[s]:
                 if pos_round != self.servo_curr_pos[s]:
                     self.servo_new_pos[s] = pos_round
                     new_position = True
