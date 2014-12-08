@@ -1,5 +1,5 @@
 #include <ra1_pro_move/ra1_pro_move_node.h>
-#include "ra1_pro_msgs/movePose.h"
+#include "ra1_pro_msgs/MovePose.h"
 
 namespace ra1_pro_move
 {
@@ -52,7 +52,7 @@ bool RA1ProMove::moveArmToPose(geometry_msgs::Pose &new_pose)
 
 }
 
-bool handleSetArmPose(ra1_pro_msgs::movePose::Request &req, ra1_pro_msgs::movePose::Response &res)
+bool handleSetArmPose(ra1_pro_msgs::MovePose::Request &req, ra1_pro_msgs::MovePose::Response &res)
 {
   ra1_pro_move::RA1ProMove arm("arm");
 

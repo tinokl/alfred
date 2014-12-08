@@ -208,9 +208,9 @@
   <joint name="servo_2" type="revolute">
     <parent link="wrist_s3"/>
     <child link="wrist_s2"/>
-    <limit effort="1000.0" lower="-3.1415926535898" upper="0.0" velocity="0.9"/>    
+    <limit effort="1000.0" lower="-1.7453292519943" upper="1.7453292519943" velocity="0.9"/>    
     <axis xyz="0 0 1"/>
-    <origin xyz="0 0 0.065" rpy="0 0 -3.1415926535898"/>
+    <origin xyz="0 0 0.065" rpy="0 0 1.5707963267949"/>
   </joint>
 
   <joint name="wrist_s2_to_wrist_box_s2" type="fixed">
