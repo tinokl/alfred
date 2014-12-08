@@ -92,7 +92,6 @@ public:
         int size = t.joint_trajectory.points.size();
 
         while(i < size) {
-          //ROS_INFO_STREAM("Fake trajectory " << i << "th - attempt");
           js.position = t.joint_trajectory.points[i].positions;
           js.velocity = t.joint_trajectory.points[i].velocities;
           js.effort = t.joint_trajectory.points[i].effort;
@@ -107,7 +106,7 @@ public:
   
   virtual bool cancelExecution()
   {   
-    ROS_INFO("Fake trajectory execution cancel");
+    ROS_INFO("Trajectory execution cancel");
     return true;
   }
   

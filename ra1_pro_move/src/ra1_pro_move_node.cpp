@@ -7,8 +7,8 @@ namespace ra1_pro_move
 RA1ProMove::RA1ProMove(std::string move_group_name) : nh_()
 {
   move_group_ = boost::make_shared<move_group_interface::MoveGroup>(move_group_name);
-  nh_.param<double>("max_planning_time", this->max_planning_time_, 180.0);
-  nh_.param<int>("num_planning_attempts", this->num_planning_attempts_, 100);
+  nh_.param<double>("max_planning_time", this->max_planning_time_, 10.0);
+  nh_.param<int>("num_planning_attempts", this->num_planning_attempts_, 10);
 
   display_publisher_pub_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("/move_group/display_planned_path", 1, true);
 }
@@ -46,7 +46,7 @@ bool RA1ProMove::moveArmToPose(geometry_msgs::Pose &new_pose)
     return true;
   }
   ROS_INFO("[RA1ProMove::moveArmToPose]: Visualizing plan FAILED");
-  ROS_ERROR("[RA1ProMove::moveArmToPose]: no motion plan found");
+  ROS_ERROR("[RA1ProMove::moveArmToPose]: No motion plan found");
   return false;
 }
 
@@ -78,7 +78,7 @@ int main(int argc, char **argv)
   ros::NodeHandle nh;
 
   ros::ServiceServer service = nh.advertiseService("move_pose", handleSetArmPose);
-  ROS_INFO("Ready to get a new arm pose.");
+  ROS_INFO("Ready to get arm poses");
   ros::spin();
 
   return 0;

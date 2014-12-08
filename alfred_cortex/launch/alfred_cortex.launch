@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<launch>
+  <node name="Cortex" pkg="alfred_cortex" type="alfred_cortex_node.py" output="screen"></node>
+</launch>

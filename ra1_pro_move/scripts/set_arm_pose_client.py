@@ -2,16 +2,16 @@
 
 import sys
 import rospy
-from g2_move_arms_msgs.srv import *
+from ra1_pro_msgs.srv import *
 from geometry_msgs.msg import *
 from visualization_msgs.msg import Marker
 
-def set_new_pose(arm, pose):
+def set_new_pose(pose):
     print "Waiting for Service"
-    rospy.wait_for_service('arm_pose')
+    rospy.wait_for_service('move_pose')
     try:
-        set_arm_pose = rospy.ServiceProxy('arm_pose', armPose)
-        resp1 = set_arm_pose(arm, pose)
+        set_arm_pose = rospy.ServiceProxy('move_pose', MovePose)
+        resp1 = set_arm_pose(pose)
 
         return resp1.error
     except rospy.ServiceException, e:
@@ -28,7 +28,7 @@ def publish_new_pose(pose):
     while count < 100:
 
         marker = Marker()
-        marker.header.frame_id = "/world"
+        marker.header.frame_id = "/base"
         marker.type = marker.CUBE
         marker.action = marker.ADD
         marker.scale.x = 0.1
@@ -57,18 +57,22 @@ if __name__ == "__main__":
     rospy.init_node('new_pose_generator', anonymous=True)
 
     new_pose = Pose()
-    new_pose.orientation.x = 0.276836500432
-    new_pose.orientation.y = 0.651976114978
-    new_pose.orientation.z = -0.26447927173
-    new_pose.orientation.w = 0.654476441404
-    new_pose.position.x = 0.713655335007
-    new_pose.position.y = -0.915504750009
-    new_pose.position.z = 0.307043827327
+
+    new_pose.position.x = 0.0
+    new_pose.position.y = 2.79396772385e-09
+    new_pose.position.z = 0.311586290598
+
+    new_pose.orientation.x = 0.0
+    new_pose.orientation.y = 0.0
+    new_pose.orientation.z = 0.707106769085
+    new_pose.orientation.w = 0.707106769085
+
+
     print "New Pose: %s" % (new_pose)
 
     publish_new_pose(new_pose)
 
-    print "Set Right Arm: ERRORCODE: %s" % (set_new_pose(armPoseRequest.ARM_RIGHT, new_pose))
+    print "Set Arm: ERRORCODE: %s" % (set_new_pose(new_pose))
 
 
 

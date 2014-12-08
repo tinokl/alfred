@@ -1,8 +1,12 @@
+<?xml version="1.0"?>
 <launch>
-  <node name="RA2_Hobby" pkg="eva" type="RA2-Hobby-AREXX.py"></node>
-  <node name="EVA_Cortex" pkg="eva" type="cortex.py" output="screen"></node>
-  <node name="Joy_Control" pkg="joy" type="joy_node"></node>
-  <node name="XboxDrv" pkg="eva" type="xboxdrv.sh"></node>
+
+<include file="$(find ra1_pro)/launch/ra1_pro.launch"></include>
+<include file="$(find alfred_cortex)/launch/alfred_cortex.launch"></include>
+<include file="$(find ra1_pro_moveit_config)/launch/moveit.launch"></include>
+<!-- <include file="$(find ra1_pro_moveit_config)/launch/move_group.launch"></include> -->
+
+<!--   <node name="XboxDrv" pkg="eva" type="xboxdrv.sh"></node> -->
 <!--  <node name="Hark_Location" pkg="sound_sensor" type="localization_hark.sh"></node> -->
 <!--  <node name="Google_Speech" pkg="gspeech" type="gspeech.py" output="screen"></node> -->
 </launch>

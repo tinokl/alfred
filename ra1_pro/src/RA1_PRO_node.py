@@ -2,15 +2,15 @@
 
 # AUTOR: Konstantin Lassnig
 # konstantin.lassnig@gmail.com
-# RA1-Pro-AREXX Velocity Command
+# RA1-Pro-AREXX Controller
 
-# Subscribes on topic "/ra1_pro/cmd" with Ra1ProVelCmd messages
+# Advertises Service "ra1_pro_cmd" with BasicCMD messages
+# Subscribes on topic "/ra1_pro/cmd" with Ra1ProSimpleMove messages
 # Subscribes on topic "/move_group/controller_joint_states" with JointState messages
 # Publishes connection information on topic "ra1_pro/feedback" with strings
 
-## Ra1ProVelCmd:
+## Ra1ProSimpleMove:
 #Header header
-#string command
 #int8 servo
 #float64 direction
 #float64 position
@@ -74,7 +74,8 @@ from sensor_msgs.msg import JointState
 from ra1_pro_msgs.msg import *
 from ra1_pro_msgs.srv import *
 
-wait_to_send = 1
+#wait_to_send = 1
+
 
 class Ra1Pro:
 
@@ -221,7 +222,6 @@ class Ra1Pro:
             if abs(pos_round) <= self.servo_max_pos[s]:
                 if pos_round != self.servo_curr_pos[s]:
                     self.servo_new_pos[s] = pos_round
-                    print "pos_round: " + str(pos_round)
                     new_position = True
             else:
                 error = ": ERROR position {0} servo {1} out of bounds - position must be smaller than {2}".format(round(norm_position), (s+1), self.servo_max_pos[s])
@@ -299,18 +299,15 @@ class Ra1Pro:
 
     def sleep_position(self):
         rospy.loginfo(rospy.get_name() + ": Turn to SLEEP position")
-        time.sleep(wait_to_send)
-        #self.send_serial("S1N500V2S2N300V2S3N600V2S4N000V2S5N000V2S6N400V2")
-        time.sleep(wait_to_send)
-        self.send_serial("S1N200V2S2P000V2S3P000V2S4P000V2S5P000V2S6P000V2")
-        time.sleep(wait_to_send)
+        self.servo_new_pos = [-400.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.send_move_command()
+        #time.sleep(wait_to_send)
         self.send_serial("OFF")
-        time.sleep(wait_to_send)
+        #time.sleep(wait_to_send)
         rospy.loginfo(rospy.get_name() + ": SLEEP position reached")
 
     def norm_position(self):
         rospy.loginfo(rospy.get_name() + ": Turn to NORMAL position")
-        #self.servo_new_pos = [-200.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.servo_new_pos = [-400.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.send_move_command()
         rospy.loginfo(rospy.get_name() + ": NORMAL position reached")
