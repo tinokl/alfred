@@ -74,7 +74,7 @@ from sensor_msgs.msg import JointState
 from ra1_pro_msgs.msg import *
 from ra1_pro_msgs.srv import *
 
-#wait_to_send = 1
+wait_to_send = 1
 
 
 class Ra1Pro:
@@ -127,7 +127,7 @@ class Ra1Pro:
                 try:
                     serial_read = self.ser.readline().rstrip()
                     string = rospy.get_name() + ": Serial Read: %s" % serial_read
-                    rospy.loginfo(string)
+                    #rospy.loginfo(string)
                     self.check_response(str(serial_read))
                     self.driver_pub.publish(String(string))
                 except:
@@ -168,6 +168,7 @@ class Ra1Pro:
         cmd_on = "Alfred # ON executed"
         cmd_off = "Alfred # OFF init"
         cmd_wait = "Alfred # wait ON"
+        cmd_error = "Alfred # COMMAND Error got: ON0000000000000000000000000000000000000000000000"
 
         if string == cmd_on:
             self.connected = True
@@ -177,6 +178,9 @@ class Ra1Pro:
         if string == cmd_wait:
             self.connected = False
             self.ready = False
+        if string == cmd_error:
+            self.connected = True
+            self.ready = True
 
     def simple_movement(self, data):
         if data.direction == 0 and self.ready is True:
@@ -212,7 +216,7 @@ class Ra1Pro:
 
             # gripper movement must be extra scaled
             if gripper is True:
-                pos_round *= 100
+                pos_round *= -100
 
             #speed = round(abs(data.velocity[s-1]*10))
             #if speed < 1:
@@ -252,8 +256,8 @@ class Ra1Pro:
         self.state_arm.effort = []
 
         self.state_gripper.name = ['gripper_finger_left', 'gripper_finger_right']
-        self.state_gripper.position = [((self.servo_curr_pos[0]/10 * 3.141592654)/180)/100,
-                                       (-(self.servo_curr_pos[0]/10 * 3.141592654)/180)/100]
+        self.state_gripper.position = [((self.servo_curr_pos[0]/10 * 3.141592654)/180)/-100,
+                                       (-(self.servo_curr_pos[0]/10 * 3.141592654)/180)/-100]
         self.state_gripper.velocity = [0.0, 0.0]
         self.state_gripper.effort = []
 
@@ -301,9 +305,7 @@ class Ra1Pro:
         rospy.loginfo(rospy.get_name() + ": Turn to SLEEP position")
         self.servo_new_pos = [-400.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.send_move_command()
-        #time.sleep(wait_to_send)
         self.send_serial("OFF")
-        #time.sleep(wait_to_send)
         rospy.loginfo(rospy.get_name() + ": SLEEP position reached")
 
     def norm_position(self):
@@ -323,7 +325,7 @@ class Ra1Pro:
         except:
             error = ": ERROR the port is maybe not open!"
             rospy.logerr(rospy.get_name() + error)
-        rospy.sleep(0.05)
+        rospy.sleep(0.07)
 
     def init_serial(self):
         rospy.loginfo(rospy.get_name() + ": INIT serial connection")
@@ -341,6 +343,7 @@ class Ra1Pro:
             #TODO maybe test something longer, case its already on
             self.send_serial("ON")
             time.sleep(wait_to_send)
+            self.send_serial("HARD")
         rospy.loginfo(rospy.get_name() + ": Serial connection established")
 
     def cleanup(self):

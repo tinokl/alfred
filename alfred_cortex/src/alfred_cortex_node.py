@@ -23,6 +23,7 @@ cmd_stop = "STOP"
 class Foo(smach.State):
 
     def __init__(self, outcomes=['outcome1', 'outcome2']):
+        print "init 1"
 
     def execute(self, userdata):
         return 'outcome1'
@@ -32,6 +33,7 @@ class Foo(smach.State):
 class Bar(smach.State):
 
     def __init__(self, outcomes=['outcome3', 'outcome4']):
+        print "init 1"
 
     def execute(self, userdata):
         return 'outcome4'
@@ -41,6 +43,7 @@ class Bar(smach.State):
 class Bas(smach.State):
 
     def __init__(self, outcomes=['outcome5']):
+        print "init 1"
 
     def execute(self, userdata):
         return 'outcome5'
@@ -55,33 +58,32 @@ class Cortex:
         #rospy.Subscriber("HarkSource", HarkSource, self.heardNoise)
         #rospy.Subscriber("speech", String, self.heardVoice)
 
-        #self.ra1_service_call(cmd_start)
+        self.ra1_service_call(cmd_start)
 
-        #while not rospy.is_shutdown():
-        #    rospy.sleep(0.1)
-        # Open the container
+        while not rospy.is_shutdown():
+            rospy.sleep(0.1)
 
         # Create the top level state machine
-        sm_top = smach.StateMachine(outcomes=['outcome5'])
-
-        with sm_top:
-
-            smach.StateMachine.add('BAS', Bas(),
-                                   transitions={'outcome3':'SUB'})
-
-            # Create the sub state machine
-            sm_sub = smach.StateMachine(outcomes=['outcome4'])
-
-            with sm_sub:
-
-                smach.StateMachine.add('FOO', Foo(),
-                                       transitions={'outcome1':'BAR',
-                                                    'outcome2':'outcome4'})
-                smach.StateMachine.add('BAR', Bar(),
-                                       transitions={'outcome1':'FOO'})
-
-            smach.StateMachine.add('SUB', sm_sub,
-                                   transitions={'outcome4':'outcome5'})
+        # sm_top = smach.StateMachine(outcomes=['outcome5'])
+        #
+        # with sm_top:
+        #
+        #     smach.StateMachine.add('BAS', Bas(),
+        #                            transitions={'outcome3':'SUB'})
+        #
+        #     # Create the sub state machine
+        #     sm_sub = smach.StateMachine(outcomes=['outcome4'])
+        #
+        #     with sm_sub:
+        #
+        #         smach.StateMachine.add('FOO', Foo(),
+        #                                transitions={'outcome1':'BAR',
+        #                                             'outcome2':'outcome4'})
+        #         smach.StateMachine.add('BAR', Bar(),
+        #                                transitions={'outcome1':'FOO'})
+        #
+        #     smach.StateMachine.add('SUB', sm_sub,
+        #                            transitions={'outcome4':'outcome5'})
 
     def ra1_service_call(self, command):
         rospy.wait_for_service('ra1_pro_cmd')
