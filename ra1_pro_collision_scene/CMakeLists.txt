@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(g3_collision_scene)
+project(ra1_pro_collision_scene)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -8,7 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
-  g3_msgs
+  ra1_pro_msgs
   moveit_core
   moveit_ros_planning_interface
 )
@@ -85,7 +85,7 @@ find_package(catkin REQUIRED COMPONENTS moveit_core moveit_ros_planning moveit_r
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-  CATKIN_DEPENDS roscpp rospy std_msgs g3_msgs
+  CATKIN_DEPENDS roscpp rospy std_msgs ra1_pro_msgs
 #  INCLUDE_DIRS include
 #  LIBRARIES g3_collision_scene
 #  DEPENDS system_lib
@@ -113,10 +113,10 @@ add_executable(collision_scene_node src/collision_scene_node.cpp)
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
 # add_dependencies(g3_collision_scene_node g3_collision_scene_generate_messages_cpp)
-add_dependencies(collision_scene_node g3_msgs_generate_messages_cpp)
+add_dependencies(collision_scene_node ra1_pro_msgs_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(collision_scene_node#
+target_link_libraries(collision_scene_node
    ${catkin_LIBRARIES}
 )
 

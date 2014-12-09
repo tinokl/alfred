@@ -1,4 +1,4 @@
-#include <g3_collision_scene/collision_scene_node.h>
+#include <ra1_pro_collision_scene/collision_scene_node.h>
 
 namespace collision_scene
 {
@@ -47,7 +47,7 @@ void CollisionScene::init()
       sleep_t.sleep();
     }
 
-	addKitchen();
+	addEnvironment();
 }
 
 
@@ -95,9 +95,9 @@ bool CollisionScene::manageCollisionScene(g3_msgs::manage_collision_scene::Reque
 }
 
 
-void CollisionScene::addKitchen()
+void CollisionScene::addEnvironment()
 {
-	ROS_INFO("Adding the kitchen to the planning scene");
+	ROS_INFO("Adding the Environment to the planning scene");
 
 	float kitchen_offset_x = -0.1335;
 	float kitchen_offset_y = 0.0;
@@ -176,7 +176,7 @@ void CollisionScene::addKitchen()
 	addCO(kitchen_shelf_co);
 	addCO(kitchen_wall_co);
 
-	ROS_INFO("Adding the kitchen finished");
+	ROS_INFO("Adding the Environment finished");
 }
 
 moveit_msgs::CollisionObject CollisionScene::getCollisionObject(std::string object_id, std::string target_frame, geometry_msgs::Pose pose)
@@ -185,13 +185,13 @@ moveit_msgs::CollisionObject CollisionScene::getCollisionObject(std::string obje
   collision_object.header.frame_id = target_frame;
   collision_object.id = object_id;
   shape_msgs::SolidPrimitive primitive;
-  if (std::strcmp(object_id.c_str(),"egg") == 0)
+  if (std::strcmp(object_id.c_str(),"ball") == 0)
   {
     primitive.type = primitive.SPHERE;
     primitive.dimensions.resize(3);
-    primitive.dimensions[0] = 0.03;
-    primitive.dimensions[1] = 0.03;
-    primitive.dimensions[2] = 0.03;
+    primitive.dimensions[0] = 0.01;
+    primitive.dimensions[1] = 0.01;
+    primitive.dimensions[2] = 0.01;
   }
   else if (std::strcmp(object_id.c_str(), "pot") == 0)
   {

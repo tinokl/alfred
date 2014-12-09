@@ -7,7 +7,7 @@
 // MoveIt!
 #include <moveit_msgs/PlanningScene.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
-#include <g3_msgs/manage_collision_scene.h>
+#include <ra1_pro_msgs/manage_collision_scene.h>
 
 namespace collision_scene
 {
@@ -21,7 +21,7 @@ namespace collision_scene
 
             void init();
 
-            bool manageCollisionScene(g3_msgs::manage_collision_scene::Request &req, g3_msgs::manage_collision_scene::Response &res);
+            bool manageCollisionScene(ra1_pro_msgs::manage_collision_scene::Request &req, ra1_pro_msgs::manage_collision_scene::Response &res);
             moveit_msgs::CollisionObject getCollisionObject(std::string object, std::string target_frame, geometry_msgs::Pose pose);
 
             void attachCO(moveit_msgs::CollisionObject object);
@@ -31,9 +31,7 @@ namespace collision_scene
             void denyCollision(moveit_msgs::CollisionObject object);
             void addCO(moveit_msgs::CollisionObject object);
 
-            void addKitchen();
-
-            //void attachObject();
+            void addEnvironment();
 
         private:
 
