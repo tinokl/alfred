@@ -1,0 +1,10 @@
+string id
+geometry_msgs/PoseStamped pose
+byte ATTACH=0
+byte DETACH=1
+byte ALLOW_COLLISION=2
+byte DENY_COLLISION=3
+byte REMOVE=4
+byte ADD=5
+byte operation
+---

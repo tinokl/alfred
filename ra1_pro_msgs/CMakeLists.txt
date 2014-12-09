@@ -55,6 +55,7 @@ add_service_files(
    FILES
    MovePose.srv
    BasicCMD.srv
+   ManageCollisionScene.srv
 #   Service2.srv
 )
 
