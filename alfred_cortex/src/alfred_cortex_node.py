@@ -9,6 +9,7 @@ import rospy
 import smach
 import smach_ros
 
+from smach_ros import *
 from std_msgs.msg import *
 from ra1_pro_msgs.msg import *
 from ra1_pro_msgs.srv import *
@@ -18,29 +19,31 @@ cmd_start = "START"
 cmd_stop = "STOP"
 
 
-# define state Foo
+# State Foo
 class Foo(smach.State):
-    def __init__(self):
-        smach.State.__init__(self, outcomes=['outcome1','outcome2'])
-        self.counter = 0
+
+    def __init__(self, outcomes=['outcome1', 'outcome2']):
 
     def execute(self, userdata):
-        rospy.loginfo('Executing state FOO')
-        if self.counter < 3:
-            self.counter += 1
-            return 'outcome1'
-        else:
-            return 'outcome2'
+        return 'outcome1'
 
 
-# define state Bar
+# State Bar
 class Bar(smach.State):
-    def __init__(self):
-        smach.State.__init__(self, outcomes=['outcome2'])
+
+    def __init__(self, outcomes=['outcome3', 'outcome4']):
 
     def execute(self, userdata):
-        rospy.loginfo('Executing state BAR')
-        return 'outcome2'
+        return 'outcome4'
+
+
+# State Bas
+class Bas(smach.State):
+
+    def __init__(self, outcomes=['outcome5']):
+
+    def execute(self, userdata):
+        return 'outcome5'
 
 
 class Cortex:
@@ -54,23 +57,31 @@ class Cortex:
 
         #self.ra1_service_call(cmd_start)
 
-        # Create a SMACH state machine
-        sm = smach.StateMachine(outcomes=['outcome4', 'outcome5'])
-
-
         #while not rospy.is_shutdown():
         #    rospy.sleep(0.1)
         # Open the container
-        with sm:
-            # Add states to the container
-            smach.StateMachine.add('FOO', Foo(),
-                                   transitions={'outcome1':'BAR',
-                                                'outcome2':'outcome4'})
-            smach.StateMachine.add('BAR', Bar(),
-                                   transitions={'outcome2':'FOO'})
 
-        # Execute SMACH plan
-        outcome = sm.execute()
+        # Create the top level state machine
+        sm_top = smach.StateMachine(outcomes=['outcome5'])
+
+        with sm_top:
+
+            smach.StateMachine.add('BAS', Bas(),
+                                   transitions={'outcome3':'SUB'})
+
+            # Create the sub state machine
+            sm_sub = smach.StateMachine(outcomes=['outcome4'])
+
+            with sm_sub:
+
+                smach.StateMachine.add('FOO', Foo(),
+                                       transitions={'outcome1':'BAR',
+                                                    'outcome2':'outcome4'})
+                smach.StateMachine.add('BAR', Bar(),
+                                       transitions={'outcome1':'FOO'})
+
+            smach.StateMachine.add('SUB', sm_sub,
+                                   transitions={'outcome4':'outcome5'})
 
     def ra1_service_call(self, command):
         rospy.wait_for_service('ra1_pro_cmd')
