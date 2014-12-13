@@ -51,8 +51,8 @@ void CollisionScene::init()
 }
 
 
-bool CollisionScene::manageCollisionScene(g3_msgs::manage_collision_scene::Request &req,
-                                          g3_msgs::manage_collision_scene::Response &res)
+bool CollisionScene::manageCollisionScene(ra1_pro_msgs::ManageCollisionScene::Request &req,
+                                          ra1_pro_msgs::ManageCollisionScene::Response &res)
 {
   std::string object_id = req.id;
   std::string target_frame = req.pose.header.frame_id;
@@ -62,27 +62,27 @@ bool CollisionScene::manageCollisionScene(g3_msgs::manage_collision_scene::Reque
 
   switch (req.operation)
   {
-    case g3_msgs::manage_collision_sceneRequest::ADD:
+    case ra1_pro_msgs::ManageCollisionSceneRequest::ADD:
       ROS_DEBUG("ADD mode:");
       addCO(object);
       break;
-    case g3_msgs::manage_collision_sceneRequest::ATTACH:
+    case ra1_pro_msgs::ManageCollisionSceneRequest::ATTACH:
       ROS_DEBUG("ATTACH mode:");
       attachCO(object);
       break;
-    case g3_msgs::manage_collision_sceneRequest::DETACH:
+    case ra1_pro_msgs::ManageCollisionSceneRequest::DETACH:
       ROS_DEBUG("DETACH mode:");
       detachCO(object);
       break;
-    case g3_msgs::manage_collision_sceneRequest::ALLOW_COLLISION:
+    case ra1_pro_msgs::ManageCollisionSceneRequest::ALLOW_COLLISION:
       ROS_DEBUG("ALLOW_COLLISION mode:");
       allowCollision(object);
       break;
-    case g3_msgs::manage_collision_sceneRequest::DENY_COLLISION:
+    case ra1_pro_msgs::ManageCollisionSceneRequest::DENY_COLLISION:
       ROS_DEBUG("DENY_COLLISION mode:");
       denyCollision(object);
       break;
-    case g3_msgs::manage_collision_sceneRequest::REMOVE:
+    case ra1_pro_msgs::ManageCollisionSceneRequest::REMOVE:
       ROS_DEBUG("REMOVE mode:");
       removeCO(object);
       break;
@@ -99,82 +99,74 @@ void CollisionScene::addEnvironment()
 {
 	ROS_INFO("Adding the Environment to the planning scene");
 
-	float kitchen_offset_x = -0.1335;
-	float kitchen_offset_y = 0.0;
-	float kitchen_offset_z = 0.0;
+	// Desk
+	shape_msgs::SolidPrimitive desk;
+	desk.type = desk.BOX;
+	desk.dimensions.resize(3);
+	desk.dimensions[0] = 0.65;
+	desk.dimensions[1] = 1.40;
+	desk.dimensions[2] = 0.05;
 
-	// Kitchen Plate
-	shape_msgs::SolidPrimitive kitchen_plate;
-	kitchen_plate.type = kitchen_plate.BOX;
-	kitchen_plate.dimensions.resize(3);
-	kitchen_plate.dimensions[0] = 0.697;
-	kitchen_plate.dimensions[1] = 3.46;
-	kitchen_plate.dimensions[2] = 0.912;
+	geometry_msgs::Pose desk_pose;
+	desk_pose.orientation.w = 1.0;
+	desk_pose.position.x = 0.18;
+	desk_pose.position.y = -0.57;
+	desk_pose.position.z = -0.025;
+	desk_pose.orientation.w = 1.0;
 
-	geometry_msgs::Pose plate_pose;
-	plate_pose.orientation.w = 1.0;
-	plate_pose.position.x = 1.0135 + kitchen_offset_x;
-	plate_pose.position.y = 0.0 + kitchen_offset_y;
-	plate_pose.position.z = -0.456 + kitchen_offset_z;
-	plate_pose.orientation.w = 1.0;
+	moveit_msgs::CollisionObject desk_co;
+	desk_co.header.frame_id = "base";
+	desk_co.id = "desk";
 
-	moveit_msgs::CollisionObject kitchen_plate_co;
-	kitchen_plate_co.header.frame_id = "base";
-	kitchen_plate_co.id = "kitchen_plate";
+	desk_co.primitives.push_back(desk);
+	desk_co.primitive_poses.push_back(desk_pose);
+	desk_co.operation = desk_co.ADD;
 
-	kitchen_plate_co.primitives.push_back(kitchen_plate);
-	kitchen_plate_co.primitive_poses.push_back(plate_pose);
-	kitchen_plate_co.operation = kitchen_plate_co.ADD;
+	// Walls
+	shape_msgs::SolidPrimitive left_wall;
+	left_wall.type = left_wall.BOX;
+	left_wall.dimensions.resize(3);
+	left_wall.dimensions[0] = 1.0;
+	left_wall.dimensions[1] = 0.05;
+	left_wall.dimensions[2] = 1.0;
 
-	// Kitchen Shelf
-	shape_msgs::SolidPrimitive kitchen_shelf;
-	kitchen_shelf.type = kitchen_shelf.BOX;
-	kitchen_shelf.dimensions.resize(3);
-	kitchen_shelf.dimensions[0] = 0.445;
-	kitchen_shelf.dimensions[1] = 3.46;
-	kitchen_shelf.dimensions[2] = 0.917;
+	shape_msgs::SolidPrimitive back_wall;
+	back_wall.type = back_wall.BOX;
+	back_wall.dimensions.resize(3);
+	back_wall.dimensions[0] = 0.05;
+	back_wall.dimensions[1] = 1.0;
+	back_wall.dimensions[2] = 1.0;
 
-	geometry_msgs::Pose shelf_pose;
-	shelf_pose.orientation.w = 1.0;
-	shelf_pose.position.x = 1.10 + kitchen_offset_x;
-	shelf_pose.position.y = 0.0 + kitchen_offset_y;
-	shelf_pose.position.z = 1.05 + kitchen_offset_z;
-	shelf_pose.orientation.w = 1.0;
+	geometry_msgs::Pose left_wall_pose;
+	left_wall_pose.position.x = 0.10;
+	left_wall_pose.position.y = 0.2;
+	left_wall_pose.position.z = 0.45;
+	left_wall_pose.orientation.w = 1.0;
 
-	moveit_msgs::CollisionObject kitchen_shelf_co;
-	kitchen_shelf_co.header.frame_id = "base";
-	kitchen_shelf_co.id = "kitchen_shelf";
+	geometry_msgs::Pose back_wall_pose;
+	back_wall_pose.position.x = -0.37;
+	back_wall_pose.position.y = -0.30;
+	back_wall_pose.position.z = 0.45;
+	back_wall_pose.orientation.w = 1.0;
 
-	kitchen_shelf_co.primitives.push_back(kitchen_shelf);
-	kitchen_shelf_co.primitive_poses.push_back(shelf_pose);
-	kitchen_shelf_co.operation = kitchen_shelf_co.ADD;
+	moveit_msgs::CollisionObject left_wall_co;
+	moveit_msgs::CollisionObject back_wall_co;
+	left_wall_co.header.frame_id = "base";
+	back_wall_co.header.frame_id = "base";
+	left_wall_co.id = "left_wall";
+	back_wall_co.id = "back_wall";
 
-	// Kitchen Wall
-	shape_msgs::SolidPrimitive kitchen_wall;
-	kitchen_wall.type = kitchen_wall.BOX;
-	kitchen_wall.dimensions.resize(3);
-	kitchen_wall.dimensions[0] = 0.1;
-	kitchen_wall.dimensions[1] = 3.46;
-	kitchen_wall.dimensions[2] = 2.417;
+	left_wall_co.primitives.push_back(left_wall);
+	left_wall_co.primitive_poses.push_back(left_wall_pose);
+	left_wall_co.operation = left_wall_co.ADD;
 
-	geometry_msgs::Pose wall_pose;
-	wall_pose.orientation.w = 1.0;
-	wall_pose.position.x = 1.41 + kitchen_offset_x;
-	wall_pose.position.y = 0.0 + kitchen_offset_y;
-	wall_pose.position.z = 0.27 + kitchen_offset_z;
-	wall_pose.orientation.w = 1.0;
+	back_wall_co.primitives.push_back(back_wall);
+	back_wall_co.primitive_poses.push_back(back_wall_pose);
+	back_wall_co.operation = back_wall_co.ADD;
 
-	moveit_msgs::CollisionObject kitchen_wall_co;
-	kitchen_wall_co.header.frame_id = "base";
-	kitchen_wall_co.id = "kitchen_wall";
-
-	kitchen_wall_co.primitives.push_back(kitchen_wall);
-	kitchen_wall_co.primitive_poses.push_back(wall_pose);
-	kitchen_wall_co.operation = kitchen_wall_co.ADD;
-
-	addCO(kitchen_plate_co);
-	addCO(kitchen_shelf_co);
-	addCO(kitchen_wall_co);
+	addCO(desk_co);
+	addCO(left_wall_co);
+	addCO(back_wall_co);
 
 	ROS_INFO("Adding the Environment finished");
 }
