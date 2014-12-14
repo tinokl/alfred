@@ -3,8 +3,9 @@
 
 #include <ros/ros.h>
 #include <sensor_msgs/Joy.h>
+#include <sensor_msgs/JointState.h>
 #include <std_msgs/Float64.h>
-#include <ra1_pro_msgs/Ra1ProVelCmd.h>
+#include <ra1_pro_msgs/MovePose.h>
 
 namespace AlfredTeleop
 {
