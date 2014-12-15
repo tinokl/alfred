@@ -28,9 +28,10 @@ protected:
 
     ros::Subscriber joy_sub_;
 
-    ros::Publisher vel_com_pub_;
+    //ros::Publisher vel_com_pub_;
 
-    ra1_pro_msgs::Ra1ProVelCmd vel_com_msg_;
+    //ra1_pro_msgs::Ra1ProVelCmd vel_com_msg_;
+    ros::ServiceClient move_pose_client_;
 
     double servo_1_;
     double servo_2_;

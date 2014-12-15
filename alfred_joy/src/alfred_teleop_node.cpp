@@ -26,11 +26,10 @@ void AlfredTeleopNode::init()
   servo_5_ = 0.0;
   servo_6_ = 0.0;
 
-  joy_sub_ = nh_.subscribe<sensor_msgs::Joy>("joy", 10,
-      &AlfredTeleopNode::joyCB, this);
+  joy_sub_ = nh_.subscribe<sensor_msgs::Joy>("joy", 10, &AlfredTeleopNode::joyCB, this);
 
   //vel_com_pub_ = nh_.advertise<ra1_pro_msgs::Ra1ProVelCmd>("/vel_cmd", 1);
-  ros::ServiceClient move_pose_client = nh.serviceClient<ra1_pro_msgs::MovePose>("move_pose");
+  move_pose_client_ = nh.serviceClient<ra1_pro_msgs::MovePose>("move_pose");
 
   //vel_com_msg_.header.frame_id = "joy_vel_cmd";
   //vel_com_msg_.header.seq = 0;
@@ -138,17 +137,18 @@ void AlfredTeleopNode::joyCB(const sensor_msgs::Joy::ConstPtr& joy)
     //sendDirCmd(6);
   }
 
-
-  if (client.call(srv))
+/*
+  ra1_pro_msgs::MovePose srv;
+  if (move_pose_client_.call(srv))
   {
-    ROS_INFO("Sum: %ld", (long int)srv.response.sum);
+    ROS_INFO("Sum: %ld", (long int)move_pose_client_.response.sum);
   }
   else
   {
     ROS_ERROR("Failed to call service add_two_ints");
-    return 1;
+    //return 1;
   }
-
+*/
 }
 
 double AlfredTeleopNode::limit(double value, double min, double max)
