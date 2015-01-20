@@ -1,5 +1,3 @@
-string JOINT_LEFT_WRIST=left_w2 
-string JOINT_RIGHT_WRIST=right_w2 
 string joint_name
 float64 delta
 float64 duration

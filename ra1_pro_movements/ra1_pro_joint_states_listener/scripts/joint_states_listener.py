@@ -26,7 +26,7 @@ class LatestJointStates:
 
     #thread function: listen for joint_states messages
     def joint_states_listener(self):
-        rospy.Subscriber('robot/joint_states', JointState, self.joint_states_callback)
+        rospy.Subscriber('/move_group/controller_joint_states', JointState, self.joint_states_callback)
         rospy.spin()
 
 

@@ -5,12 +5,12 @@ import rospy
 from ra1_pro_msgs.srv import *
 from geometry_msgs.msg import *
 
-def set_new_cartesian_pose(move_group, waypoint):
+def set_new_cartesian_pose(waypoint):
     print "Waiting for Service"
     rospy.wait_for_service('move_cartesian')
     try:
         set_move_cartesian = rospy.ServiceProxy('move_cartesian', MoveCartesian)
-        resp1 = set_move_cartesian(move_group, waypoint)
+        resp1 = set_move_cartesian(waypoint)
 
         return resp1.error
     except rospy.ServiceException, e:
@@ -28,16 +28,14 @@ if __name__ == "__main__":
     new_pose.pose.orientation.y = 0.0
     new_pose.pose.orientation.z = 0.0
     new_pose.pose.orientation.w = 0.0
-    new_pose.pose.position.x = -0.05
-    new_pose.pose.position.y = 0.008
-    new_pose.pose.position.z = 0.0
-    # move_group = armPoseCartesianRequest.ARM_LEFT
-    move_group = MoveCartesian.ARM_RIGHT
+    new_pose.pose.position.x = 0.0
+    new_pose.pose.position.y = 0.0
+    new_pose.pose.position.z = -0.01
 
     #print "New Pose: %s" % (new_pose)
 
     #publish_new_pose_cartesian(new_pose)
-    print "Set %s Cartesian : ERRORCODE: %s" % (move_group, set_new_cartesian_pose(move_group, new_pose))
+    print "Set arm Cartesian : ERRORCODE: %s" % (set_new_cartesian_pose(new_pose))
 
 
 

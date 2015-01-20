@@ -1,6 +1,3 @@
-string ARM_LEFT=left_arm 
-string ARM_RIGHT=right_arm 
-string move_group
 geometry_msgs/PoseStamped waypoint
 ---
 # move_group_interface::MoveItErrorCode

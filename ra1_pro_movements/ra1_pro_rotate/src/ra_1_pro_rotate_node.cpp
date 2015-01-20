@@ -97,7 +97,7 @@ move_group_interface::MoveItErrorCode Ra1ProRotateNode::rotateArmWithAngle(std::
 
 bool handleRotate(ra1_pro_msgs::RotateAngle::Request &req, ra1_pro_msgs::RotateAngle::Response &res)
 {
-  std::string move_group_name("both_arms");
+  std::string move_group_name("arm");
 
   ra1_pro_rotate::Ra1ProRotateNode move_group;
   if (!move_group.init(move_group_name))

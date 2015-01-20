@@ -99,7 +99,7 @@ move_group_interface::MoveItErrorCode RA1ProMoveCartesianNode::moveArmWithWaypoi
 
 bool handleSetMoveCartesian(ra1_pro_msgs::MoveCartesian::Request &req, ra1_pro_msgs::MoveCartesian::Response &res)
 {
-  std::string move_group_name(req.move_group);
+  std::string move_group_name("arm");
   geometry_msgs::PoseStamped waypoint(req.waypoint);
 
   ROS_INFO_STREAM("New waypoint for movegroup '" << move_group_name << "'");

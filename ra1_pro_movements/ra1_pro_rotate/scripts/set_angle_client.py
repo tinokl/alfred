@@ -19,8 +19,8 @@ if __name__ == "__main__":
 
     rospy.init_node('new_angle_generator', anonymous=True)
 
-    new_angle = math.pi/2.0
-    joint_name = "right_w2"
+    new_angle = math.pi/4.0
+    joint_name = "shoulder_s5"
     duration = 0.0
 
     print "New Angle: %s" % (new_angle)

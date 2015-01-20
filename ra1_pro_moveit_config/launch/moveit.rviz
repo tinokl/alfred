@@ -5,8 +5,8 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /MotionPlanning1
+        - /MotionPlanning1/Scene Robot1
         - /MotionPlanning1/Planning Request1
-        - /MotionPlanning1/Planned Path1
       Splitter Ratio: 0.685997
     Tree Height: 278
   - Class: rviz/Help
@@ -132,7 +132,7 @@ Visualization Manager:
         Planning Group: arm
         Query Goal State: true
         Query Start State: false
-        Show Workspace: true
+        Show Workspace: false
         Start State Alpha: 1
         Start State Color: 0; 255; 0
       Planning Scene Topic: /move_group/monitored_planning_scene
@@ -226,22 +226,22 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 2.4244
+      Distance: 1.86731
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0
-        Y: 0
-        Z: 0
+        X: -0.529767
+        Y: 0.0347792
+        Z: -5.96046e-08
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.295399
+      Pitch: 0.185399
       Target Frame: base
       Value: XYOrbit (rviz)
-      Yaw: 5.84041
+      Yaw: 5.95541
     Saved: ~
 Window Geometry:
   Displays:
