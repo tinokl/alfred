@@ -5,6 +5,7 @@
 <include file="$(find alfred_cortex)/launch/alfred_cortex.launch"></include>
 <include file="$(find ra1_pro_moveit_config)/launch/moveit.launch"></include>
 <!-- <include file="$(find ra1_pro_moveit_config)/launch/move_group.launch"></include> -->
+<include file="$(find ra1_pro_collision_scene)/launch/collision_scene.launch"></include>
 
 <!--   <node name="XboxDrv" pkg="eva" type="xboxdrv.sh"></node> -->
 <!--  <node name="Hark_Location" pkg="sound_sensor" type="localization_hark.sh"></node> -->

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
 
-  <node name="g3_kmr_collision_scene_node" pkg="g3_collision_scene" type="collision_scene_node" output="screen">
-  </node>
+  <node name="collision_scene_server" pkg="ra1_pro_collision_scene" type="collision_scene_node" output="screen"></node>
 
 </launch>
