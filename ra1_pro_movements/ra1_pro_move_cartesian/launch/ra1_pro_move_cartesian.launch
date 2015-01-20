@@ -3,7 +3,7 @@
     <param name="max_planning_time"     type="double" value="20.0" />
     <param name="num_planning_attempts" type="int"    value="10" />
     
-    <node pkg="g3_move_arms_cartesian" type="move_arm_cartesian_node" name="move_arm_cartesian_node" args="" output="screen" >
+    <node pkg="ra1_pro_move_cartesian" type="move_cartesian_node" name="move_cartesian_node" args="" output="screen" >
         <remap from="/joint_states" to="/robot/joint_states" />         
     </node>
 </launch>

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(g3_move_arms_cartesian)
+project(ra1_pro_move_cartesian)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -12,7 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_ros_planning_interface
   roscpp
   tf
-  g3_move_arms_msgs
+  ra1_pro_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -107,14 +107,14 @@ include_directories(include
 # )
 
 ## Declare a cpp executable
-add_executable(move_arm_cartesian_node src/move_arm_cartesian_node.cpp)
+add_executable(ra1_pro_move_cartesian_node src/ra1_pro_move_cartesian_node.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
-add_dependencies(move_arm_cartesian_node g3_move_arms_msgs_generate_messages_cpp)
+add_dependencies(ra1_pro_move_cartesian_node ra1_pro_msgs_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(move_arm_cartesian_node
+target_link_libraries(ra1_pro_move_cartesian_node
   ${catkin_LIBRARIES}
 )
 

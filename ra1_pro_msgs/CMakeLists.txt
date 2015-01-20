@@ -57,7 +57,7 @@ add_service_files(
    ManageCollisionScene.srv
    ReturnJointStates.srv
    RotateAngle.srv
-   MovePoseCartesian.srv
+   MoveCartesian.srv
 )
 
 ## Generate actions in the 'action' folder

@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>g3_joint_states_listener</name>
+  <name>ra1_pro_joint_states_listener</name>
   <version>0.0.0</version>
-  <description>The g3_joint_states_listener package</description>
+  <description>The ra1_pro_joint_states_listener package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 
   <!-- Example:  -->

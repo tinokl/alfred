@@ -1,18 +1,13 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(g3_move_arms_cartesian)
+project(ra1_pro_joint_states_listener)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  actionlib
-  geometry_msgs
-  moveit_core
-  moveit_ros_planning
-  moveit_ros_planning_interface
-  roscpp
-  tf
-  g3_move_arms_msgs
+  rospy
+  sensor_msgs
+  ra1_pro_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -56,11 +51,11 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
+#add_service_files(
+#  FILES
+#  returnJointStates.srv
 #   Service2.srv
-# )
+#)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -70,10 +65,10 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
-# )
+#generate_messages(
+#  DEPENDENCIES
+#  sensor_msgs
+#)
 
 ###################################
 ## catkin specific configuration ##
@@ -85,9 +80,9 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include
-#  LIBRARIES g3_move_arms_cartesian
-#  CATKIN_DEPENDS other_catkin_pkg
+#  INCLUDE_DIRS include
+#  LIBRARIES joint_states_listener
+#  CATKIN_DEPENDS rospy sensor_msgs
 #  DEPENDS system_lib
 )
 
@@ -97,26 +92,27 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-include_directories(include
+# include_directories(include)
+include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
 ## Declare a cpp library
-# add_library(g3_move_arms_cartesian
-#   src/${PROJECT_NAME}/g3_move_arms_cartesian.cpp
+# add_library(joint_states_listener
+#   src/${PROJECT_NAME}/joint_states_listener.cpp
 # )
 
 ## Declare a cpp executable
-add_executable(move_arm_cartesian_node src/move_arm_cartesian_node.cpp)
+# add_executable(joint_states_listener_node src/joint_states_listener_node.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
-add_dependencies(move_arm_cartesian_node g3_move_arms_msgs_generate_messages_cpp)
+# add_dependencies(joint_states_listener_node joint_states_listener_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(move_arm_cartesian_node
-  ${catkin_LIBRARIES}
-)
+# target_link_libraries(joint_states_listener_node
+#   ${catkin_LIBRARIES}
+# )
 
 #############
 ## Install ##
@@ -133,7 +129,7 @@ target_link_libraries(move_arm_cartesian_node
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS g3_move_arms_cartesian g3_move_arms_cartesian_node
+# install(TARGETS joint_states_listener joint_states_listener_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -158,7 +154,7 @@ target_link_libraries(move_arm_cartesian_node
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_g3_move_arms_cartesian.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_joint_states_listener.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

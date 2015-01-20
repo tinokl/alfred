@@ -4,14 +4,14 @@
 import roslib
 import sys
 import rospy
-from g3_joint_states_listener_msgs.srv import *
+from ra1_pro_msgs.srv import *
 import time
 import sys
 
 def call_return_joint_states(joint_name):
     rospy.wait_for_service("robot/joint_states_filtered")
     try:
-        s = rospy.ServiceProxy("robot/joint_states_filtered", returnJointStates)
+        s = rospy.ServiceProxy("robot/joint_states_filtered", ReturnJointStates)
         resp = s(joint_name)
     except rospy.ServiceException, e:
         print "error when calling return_joint_states: %s"%e

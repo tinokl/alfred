@@ -1,16 +1,16 @@
-#include <g3_move_arms_cartesian/move_arm_cartesian_node.h>
-#include "g3_move_arms_msgs/armPoseCartesian.h"
+#include <ra1_pro_move_cartesian/ra1_pro_move_cartesian_node.h>
+#include "ra1_pro_msgs/MoveCartesian.h"
 
-namespace baxter_move_arms_cartesian
+namespace ra1_pro_move_cartesian
 {
-BaxterMoveArmCartesianNode::BaxterMoveArmCartesianNode() :
+RA1ProMoveCartesianNode::RA1ProMoveCartesianNode() :
     nh_(), tf_listener_(nh_)
 {
   max_planning_time_ = 180.0;
   num_planning_attempts_ = 100;
 }
 
-bool BaxterMoveArmCartesianNode::init(std::string move_group_name)
+bool RA1ProMoveCartesianNode::init(std::string move_group_name)
 {
   move_group_ = boost::make_shared<move_group_interface::MoveGroup>(move_group_name);
   nh_.param<double>("max_planning_time", this->max_planning_time_, 180.0);
@@ -20,7 +20,7 @@ bool BaxterMoveArmCartesianNode::init(std::string move_group_name)
   return true;
 }
 
-void BaxterMoveArmCartesianNode::getRealWaypointFromWaypoint(geometry_msgs::PoseStamped &waypoint,
+void RA1ProMoveCartesianNode::getRealWaypointFromWaypoint(geometry_msgs::PoseStamped &waypoint,
     geometry_msgs::PoseStamped &real_waypoint)
 {
   geometry_msgs::PoseStamped current_pose = move_group_->getCurrentPose();
@@ -54,27 +54,17 @@ void BaxterMoveArmCartesianNode::getRealWaypointFromWaypoint(geometry_msgs::Pose
       throw tf::ConnectivityException("tf_listener error_str: " + error_str);
 
   }
-  catch (tf::TransformException ex)
-  {
-    ROS_ERROR("[tug_baxter_movements] tf_listener: %s", ex.what());
-    throw ex;
-  }
-  catch (tf::ConnectivityException ex)
-  {
-    ROS_ERROR("[tug_baxter_movements] tf_listener: %s", ex.what());
-    throw ex;
-  }
   catch (...)
   {
-    ROS_ERROR("[tug_baxter_movements] caught any exception...");
+    ROS_ERROR("[RA1ProMoveCartesianNode] caught any exception...");
     throw false;
   }
 }
 
-move_group_interface::MoveItErrorCode BaxterMoveArmCartesianNode::moveArmWithWaypoint(geometry_msgs::PoseStamped &waypoint,
+move_group_interface::MoveItErrorCode RA1ProMoveCartesianNode::moveArmWithWaypoint(geometry_msgs::PoseStamped &waypoint,
     double &fraction)
 {
-  ROS_INFO("[BaxterMoveArmCartesianNode::moveArmWithWaypoints]: got waypoint...start planning of cartesian path");
+  ROS_INFO("[RA1ProMoveCartesianNode::moveArmWithWaypoints]: got waypoint...start planning of cartesian path");
 
   // get real waypoint
   geometry_msgs::PoseStamped real_waypoint;
@@ -86,7 +76,7 @@ move_group_interface::MoveItErrorCode BaxterMoveArmCartesianNode::moveArmWithWay
   moveit_msgs::RobotTrajectory trajectory;
   fraction = move_group_->computeCartesianPath(waypoints, 0.01, 0.0, trajectory);
   //ROS_ERROR_STREAM("Trajectory: " << trajectory);
-  ROS_INFO("[BaxterMoveArmCartesianNode::moveArmWithWaypoints]: Visualizing plan 4 (cartesian path) (%.2f%% acheived)", fraction * 100.0);
+  ROS_INFO("[RA1ProMoveCartesianNode::moveArmWithWaypoints]: Visualizing plan 4 (cartesian path) (%.2f%% acheived)", fraction * 100.0);
 
   if (fraction < 0.01)
     return moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
@@ -100,21 +90,21 @@ move_group_interface::MoveItErrorCode BaxterMoveArmCartesianNode::moveArmWithWay
   move_group_interface::MoveItErrorCode error_code = move_group_->execute(plan);
 
   sleep(1.0);
-  ROS_INFO("[BaxterMoveArmCartesianNode::moveArmWithWaypoints]: done");
+  ROS_INFO("[RA1ProMoveCartesianNode::moveArmWithWaypoints]: done");
 
   return error_code;
 }
 
 }
 
-bool handleSetArmPoseCartesian(g3_move_arms_msgs::armPoseCartesian::Request &req, g3_move_arms_msgs::armPoseCartesian::Response &res)
+bool handleSetMoveCartesian(ra1_pro_msgs::MoveCartesian::Request &req, ra1_pro_msgs::MoveCartesian::Response &res)
 {
   std::string move_group_name(req.move_group);
   geometry_msgs::PoseStamped waypoint(req.waypoint);
 
   ROS_INFO_STREAM("New waypoint for movegroup '" << move_group_name << "'");
 
-  baxter_move_arms_cartesian::BaxterMoveArmCartesianNode move_group;
+  ra1_pro_move_cartesian::RA1ProMoveCartesianNode move_group;
   if (!move_group.init(move_group_name))
   {
     res.error = move_group_interface::MoveItErrorCode::INVALID_GROUP_NAME;
@@ -130,14 +120,14 @@ bool handleSetArmPoseCartesian(g3_move_arms_msgs::armPoseCartesian::Request &req
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "move_arm_node");
+  ros::init(argc, argv, "move_cartesian_node");
 
   ros::AsyncSpinner spinner(1);
   spinner.start();
 
   ros::NodeHandle nh;
 
-  ros::ServiceServer service1 = nh.advertiseService("arm_pose_cartesian", handleSetArmPoseCartesian);
+  ros::ServiceServer service1 = nh.advertiseService("move_cartesian", handleSetMoveCartesian);
   ROS_INFO("Ready to get a new waypoint.");
   ros::spin();
 

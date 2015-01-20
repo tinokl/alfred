@@ -1,5 +1,5 @@
-#ifndef BAXTER_MOVE_ARM_CARTESIAN__H_
-#define BAXTER_MOVE_ARM_CARTESIAN__H_
+#ifndef RA1_PRO_MOVE_CARTESIAN__H_
+#define RA1_PRO_MOVE_CARTESIAN__H_
 
 #include <ros/ros.h>
 #include <actionlib/client/simple_action_client.h>
@@ -11,13 +11,13 @@
 #include <tf/tf.h>
 #include <tf/transform_listener.h>
 
-namespace baxter_move_arms_cartesian
+namespace ra1_pro_move_cartesian
 {
-class BaxterMoveArmCartesianNode
+class RA1ProMoveCartesianNode
 {
 public:
-  BaxterMoveArmCartesianNode();
-  ~BaxterMoveArmCartesianNode()
+  RA1ProMoveCartesianNode();
+  ~RA1ProMoveCartesianNode()
   {
   }
   ;

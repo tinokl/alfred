@@ -5,7 +5,7 @@
 import roslib
 import sys
 import rospy
-from g3_joint_states_listener_msgs.srv import *
+from ra1_pro_msgs.srv import *
 from sensor_msgs.msg import JointState
 import threading
 
@@ -21,7 +21,7 @@ class LatestJointStates:
         self.thread = threading.Thread(target=self.joint_states_listener)
         self.thread.start()
 
-        s = rospy.Service('robot/joint_states_filtered', returnJointStates, self.return_joint_states)
+        s = rospy.Service('robot/joint_states_filtered', ReturnJointStates, self.return_joint_states)
 
 
     #thread function: listen for joint_states messages
@@ -76,7 +76,7 @@ class LatestJointStates:
     #for a list of joints specified by name
     def return_joint_states(self, req):
         (joint_found, position) = self.return_joint_state(req.name)
-        return returnJointStatesResponse(joint_found, position)
+        return ReturnJointStatesResponse(joint_found, position)
 
 
 #run the server
