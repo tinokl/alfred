@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-    <param name="max_planning_time"     type="double" value="20.0" />
-    <param name="num_planning_attempts" type="int"    value="10" />
-    
-    <node pkg="ra1_pro_move" type="ra1_pro_move_node" name="ra1_pro_move_node" args="" output="screen" >
-        <remap from="/joint_states" to="/robot/joint_states" />         
-    </node>
-</launch>
