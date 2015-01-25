@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<launch>
+
+<!-- basic collision scene server -->
+<include file="$(find ra1_pro_collision_scene)/launch/collision_scene.launch"></include>
+
+<!-- -->
+<!--  <node name="Hark_Location" pkg="sound_sensor" type="localization_hark.sh"></node> -->
+
+<!-- -->
+<!--  <node name="Google_Speech" pkg="gspeech" type="gspeech.py" output="screen"></node> -->
+
+</launch>

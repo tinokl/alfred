@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<launch>
+
+<include file="$(find alfred_cortex)/launch/alfred_cortex.launch"></include>
+
+
+
+</launch>

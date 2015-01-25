@@ -10,7 +10,7 @@ from sensor_msgs.msg import JointState
 import threading
 
 
-#holds the latest states obtained from joint_states messages
+# holds the latest states obtained from joint_states messages
 class LatestJointStates:
 
     def __init__(self):
@@ -23,26 +23,23 @@ class LatestJointStates:
 
         s = rospy.Service('robot/joint_states_filtered', ReturnJointStates, self.return_joint_states)
 
-
-    #thread function: listen for joint_states messages
+    # thread function: listen for joint_states messages
     def joint_states_listener(self):
-        rospy.Subscriber('/move_group/controller_joint_states', JointState, self.joint_states_callback)
+        rospy.Subscriber('/joint_states', JointState, self.joint_states_callback)
         rospy.spin()
 
-
-    #callback function: when a joint_states message arrives, save the values
+    # callback function: when a joint_states message arrives, save the values
     def joint_states_callback(self, msg):
         self.lock.acquire()
-        self.name = msg.name
-        self.position = msg.position
+        if msg.name[0] == 'servo_2':
+            self.name = msg.name
+            self.position = msg.position
         self.lock.release()
 
-
-    #returns (found, position, velocity, effort) for the joint joint_name
-    #(found is 1 if found, 0 otherwise)
+    # returns (found, position, velocity, effort) for the joint joint_name
+    # (found is 1 if found, 0 otherwise)
     def return_joint_state(self, joint_name):
-
-        #no messages yet
+        # no messages yet
         if self.name == []:
             rospy.logerr("No robot_state messages received!\n")
             return (0, 0., 0., 0.)
@@ -50,7 +47,7 @@ class LatestJointStates:
         found = False
 
         for count in range(1,10):
-            #return info for this joint
+            # return info for this joint
             self.lock.acquire()
             if joint_name in self.name:
                 index = self.name.index(joint_name)
@@ -59,7 +56,7 @@ class LatestJointStates:
                 found = True
                 break
 
-            #unless it's not found
+            # unless it's not found
             else:
                 self.lock.release()
                 rospy.logerr("Joint %s not found yet!", (joint_name,))
@@ -71,15 +68,13 @@ class LatestJointStates:
         else:
             return (0, 0.)
 
-
-    #server callback: returns arrays of position, velocity, and effort
-    #for a list of joints specified by name
+    # server callback: returns arrays of position, velocity, and effort
+    # for a list of joints specified by name
     def return_joint_states(self, req):
         (joint_found, position) = self.return_joint_state(req.name)
         return ReturnJointStatesResponse(joint_found, position)
 
-
-#run the server
+# run the server
 if __name__ == "__main__":
 
     latestjointstates = LatestJointStates()

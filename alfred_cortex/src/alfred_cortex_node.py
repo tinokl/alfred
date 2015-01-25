@@ -155,7 +155,7 @@ class Cortex:
 
 
 if __name__ == '__main__':
-    rospy.init_node('Cortex')
+    rospy.init_node('cortex')
     try:
         Cortex()
     except rospy.ROSInterruptException:

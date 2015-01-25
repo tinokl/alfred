@@ -47,6 +47,7 @@ find_package(catkin REQUIRED COMPONENTS
 add_message_files(
    FILES
    Ra1ProSimpleMove.msg
+   DeltaPoint.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -58,6 +59,7 @@ add_service_files(
    ReturnJointStates.srv
    RotateAngle.srv
    MoveCartesian.srv
+   MoveFixPose.srv
 )
 
 ## Generate actions in the 'action' folder

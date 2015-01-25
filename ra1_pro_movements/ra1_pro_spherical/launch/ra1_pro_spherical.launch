@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<launch>
+    <node pkg="ra1_pro_spherical" type="ra1_pro_spherical_node.py" name="ra1_pro_spherical_node" output="screen"/> 
+</launch>

@@ -3,3 +3,5 @@ float64 delta
 float64 duration
 ---
 uint8 error
+uint8 SUCCESS=0
+uint8 ERROR=1

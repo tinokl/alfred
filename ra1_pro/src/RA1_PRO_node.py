@@ -91,7 +91,11 @@ class Ra1Pro:
         rospy.Subscriber("/ra1_pro/cmd", Ra1ProSimpleMove, self.simple_movement)
         rospy.Subscriber("/move_group/controller_joint_states", JointState, self.get_trajectory)
 
+        rate = rospy.Rate(10)
+
         self.ser = serial.Serial()
+        self.ser.timeout = 0
+
         rospy.on_shutdown(self.cleanup)
 
         self.msg_not_ready = ": System is not ready, did you start?"
@@ -110,6 +114,8 @@ class Ra1Pro:
         self.servo_prev_pos = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.servo_speed = [0, 0, 0, 0, 0, 0]
 
+        self.servo_name = ['gripper_finger_left', 'servo_2', 'servo_3', 'servo_4', 'servo_5', 'servo_6']
+
         # less than these values
         #self.servo_max_pos = [900, 800, 500, 900, 900, 900]
         self.servo_max_pos = [900, 900, 900, 900, 900, 900]
@@ -124,6 +130,7 @@ class Ra1Pro:
 
         while not rospy.is_shutdown():
             if self.ser.isOpen() == 1:
+                self.send_robot_state()
                 try:
                     serial_read = self.ser.readline().rstrip()
                     string = rospy.get_name() + ": Serial Read: %s" % serial_read
@@ -135,10 +142,10 @@ class Ra1Pro:
                         rospy.loginfo(rospy.get_name() + ": Port is closed")
                     else:
                         rospy.logerr(rospy.get_name() + ": Port is closed!")
-            rospy.sleep(0.05)
+            rate.sleep()
+            #rospy.sleep(0.05)
 
     def handle_basic_cmd(self, req):
-
         resp = BasicCMDResponse()
 
         if req.cmd == req.STOP:
@@ -191,31 +198,34 @@ class Ra1Pro:
             rospy.logerr(rospy.get_name() + self.msg_not_ready)
 
     def get_trajectory(self, data):
-
         if self.ready is False:
             rospy.logerr(rospy.get_name() + self.msg_not_ready)
             return
 
         new_position = False
-        servo = data.name[0]
+        #servo = data.name[0]
         rospy.loginfo(rospy.get_name() + ": Got trajectory")
 
-        servo_start = 1
-        servo_end = self.servos
-        gripper = False
+        servo_start = 0
+        servo_end = len(data.name)
 
-        if servo == "gripper_finger_left":
-            servo_start = 0
-            servo_end = 1
-            gripper = True
+        #gripper = False
+
+        #if servo == "gripper_finger_left":
+        #    servo_start = 0
+        #    servo_end = 1
+        #    gripper = True
 
         for s in range(servo_start, servo_end):
+            index = self.servo_name.index(data.name[s])
+            #print "servo: " + self.servo_name[index] + " index: " + str(index)
             # remap from rad to grad and scale to hundred
-            norm_position = ((data.position[s-1]*180/3.141592654)*10)
+            #norm_position = ((data.position[s-1]*180/math.pi)*10)
+            norm_position = ((data.position[s]*180/math.pi)*10)
             pos_round = round(norm_position)
 
             # gripper movement must be extra scaled
-            if gripper is True:
+            if index is 0:
                 pos_round *= -100
 
             #speed = round(abs(data.velocity[s-1]*10))
@@ -223,13 +233,13 @@ class Ra1Pro:
             #    speed = 1
             #self.servo_speed[s] = speed
 
-            if abs(pos_round) <= self.servo_max_pos[s]:
-                if pos_round != self.servo_curr_pos[s]:
-                    self.servo_new_pos[s] = pos_round
+            if abs(pos_round) <= self.servo_max_pos[index]:
+                if pos_round != self.servo_curr_pos[index]:
+                    self.servo_new_pos[index] = pos_round
                     new_position = True
             else:
-                error = ": ERROR position {0} servo {1} out of bounds - position must be smaller than {2}".format(round(norm_position), (s+1), self.servo_max_pos[s])
-                self.servo_new_pos[s] = math.copysign(self.servo_max_pos[s], pos_round)
+                error = ": ERROR position {0} servo {1} out of bounds - position must be smaller than {2}".format(round(norm_position), index, self.servo_max_pos[index])
+                self.servo_new_pos[index] = math.copysign(self.servo_max_pos[index], pos_round)
                 rospy.logerr(rospy.get_name() + error)
 
         if new_position:
@@ -241,23 +251,24 @@ class Ra1Pro:
         self.state_gripper = JointState()
 
         self.header = Header()
-        self.header.frame_id = 'base'
+        self.header.stamp = rospy.Time.now()
+        self.header.frame_id = '/base'
 
         self.state_arm.header = self.header
         self.state_gripper.header = self.header
 
         self.state_arm.name = ['servo_2', 'servo_3', 'servo_4', 'servo_5', 'servo_6']
-        self.state_arm.position = [(self.servo_curr_pos[1]/10 * 3.141592654)/180,
-                                   (self.servo_curr_pos[2]/10 * 3.141592654)/180,
-                                   (self.servo_curr_pos[3]/10 * 3.141592654)/180,
-                                   (self.servo_curr_pos[4]/10 * 3.141592654)/180,
-                                   (self.servo_curr_pos[5]/10 * 3.141592654)/180]
+        self.state_arm.position = [(self.servo_curr_pos[1]/10 * math.pi)/180,
+                                   (self.servo_curr_pos[2]/10 * math.pi)/180,
+                                   (self.servo_curr_pos[3]/10 * math.pi)/180,
+                                   (self.servo_curr_pos[4]/10 * math.pi)/180,
+                                   (self.servo_curr_pos[5]/10 * math.pi)/180]
         self.state_arm.velocity = [0.0, 0.0, 0.0, 0.0, 0.0]
         self.state_arm.effort = []
 
         self.state_gripper.name = ['gripper_finger_left', 'gripper_finger_right']
-        self.state_gripper.position = [((self.servo_curr_pos[0]/10 * 3.141592654)/180)/-100,
-                                       (-(self.servo_curr_pos[0]/10 * 3.141592654)/180)/-100]
+        self.state_gripper.position = [((self.servo_curr_pos[0]/10 * math.pi)/180)/-100,
+                                       (-(self.servo_curr_pos[0]/10 * math.pi)/180)/-100]
         self.state_gripper.velocity = [0.0, 0.0]
         self.state_gripper.effort = []
 

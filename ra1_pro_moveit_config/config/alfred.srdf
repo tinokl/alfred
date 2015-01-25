@@ -32,11 +32,11 @@
         <joint name="servo_6" value="0" />
     </group_state>
     <group_state name="home" group="arm">
-        <joint name="servo_2" value="0" />
-        <joint name="servo_3" value="1.2523" />
-        <joint name="servo_4" value="1.3114" />
+        <joint name="servo_2" value="1.43" />
+        <joint name="servo_3" value="1.3932" />
+        <joint name="servo_4" value="-1.1980" />
         <joint name="servo_5" value="-1.0748" />
-        <joint name="servo_6" value="0" />
+        <joint name="servo_6" value="-0.7720" />
     </group_state>
     <!--END EFFECTOR: Purpose: Represent information about an end effector.-->
     <end_effector name="gripper_eff" parent_link="wrist_s2" group="gripper" parent_group="arm" />

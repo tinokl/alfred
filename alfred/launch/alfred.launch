@@ -1,13 +1,10 @@
 <?xml version="1.0"?>
 <launch>
 
-<include file="$(find ra1_pro)/launch/ra1_pro.launch"></include>
-<include file="$(find alfred_cortex)/launch/alfred_cortex.launch"></include>
-<include file="$(find ra1_pro_moveit_config)/launch/moveit.launch"></include>
-<!-- <include file="$(find ra1_pro_moveit_config)/launch/move_group.launch"></include> -->
-<include file="$(find ra1_pro_collision_scene)/launch/collision_scene.launch"></include>
+<include file="$(find alfred)/launch/alfred_move.launch"></include>
 
-<!--   <node name="XboxDrv" pkg="eva" type="xboxdrv.sh"></node> -->
-<!--  <node name="Hark_Location" pkg="sound_sensor" type="localization_hark.sh"></node> -->
-<!--  <node name="Google_Speech" pkg="gspeech" type="gspeech.py" output="screen"></node> -->
+<include file="$(find alfred)/launch/alfred_sensor.launch"></include>
+
+<include file="$(find alfred)/launch/alfred_highlevel.launch"></include>
+
 </launch>

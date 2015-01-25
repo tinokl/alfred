@@ -9,7 +9,7 @@ def set_new_angle(joint_name, delta, duration):
     rospy.wait_for_service('rotate_angle')
     try:
         set_angle = rospy.ServiceProxy('rotate_angle', RotateAngle)
-        resp1 = set_angle( joint_name, delta, duration)
+        resp1 = set_angle(joint_name, delta, duration)
 
         return resp1.error
     except rospy.ServiceException, e:
@@ -19,9 +19,9 @@ if __name__ == "__main__":
 
     rospy.init_node('new_angle_generator', anonymous=True)
 
-    new_angle = math.pi/4.0
-    joint_name = "shoulder_s5"
-    duration = 0.0
+    new_angle = math.pi/10.0
+    joint_name = 'servo_6'
+    duration = 1.0
 
     print "New Angle: %s" % (new_angle)
 

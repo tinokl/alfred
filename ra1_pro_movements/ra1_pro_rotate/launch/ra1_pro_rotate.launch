@@ -1,12 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-    <node pkg="ra1_pro_joint_states_listener" type="joint_states_listener.py" name="joint_states_listener" args="" output="screen" >
-        <remap from="/joint_states" to="/robot/joint_states" />         
-    </node>
-
+    <node pkg="ra1_pro_joint_states_listener" type="joint_states_listener.py" name="joint_states_listener" args="" output="screen" /> 
    
-    <node pkg="ra1_pro_rotate" type="ra1_pro_rotate_node" name="ra1_pro_rotate_node" args="" output="screen" >
-        <remap from="/joint_states" to="/robot/joint_states" />         
-    </node>
- 
+    <node pkg="ra1_pro_rotate" type="ra1_pro_rotate_node" name="ra1_pro_rotate_node" output="screen"/>  
 </launch>

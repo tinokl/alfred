@@ -118,8 +118,7 @@ bool handleRotate(ra1_pro_msgs::RotateAngle::Request &req, ra1_pro_msgs::RotateA
 
 void jointCallback(const sensor_msgs::JointState::ConstPtr& msg)
 {
-
-//  ROS_INFO_STREAM("I heard: " << msg->name.);
+  //ROS_INFO_STREAM("I heard: " << msg->name[0]);
 }
 
 int main(int argc, char **argv)
@@ -132,7 +131,7 @@ int main(int argc, char **argv)
   ros::NodeHandle nh;
 
   ros::ServiceServer service1 = nh.advertiseService("rotate_angle", handleRotate);
-  ros::Subscriber sub = nh.subscribe("robot/joint_states", 10, jointCallback);
+  ros::Subscriber sub = nh.subscribe("/joint_states", 10, jointCallback);
   ROS_INFO("Ready to get a new rotation angle.");
   ros::spin();
 

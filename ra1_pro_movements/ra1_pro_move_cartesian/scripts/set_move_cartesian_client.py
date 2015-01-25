@@ -23,14 +23,14 @@ if __name__ == "__main__":
     new_pose = PoseStamped()
     new_pose.header.seq = 1
     new_pose.header.stamp = rospy.Time.now()
-    new_pose.header.frame_id = "base"
+    new_pose.header.frame_id = "/base"
     new_pose.pose.orientation.x = 0.0
     new_pose.pose.orientation.y = 0.0
     new_pose.pose.orientation.z = 0.0
     new_pose.pose.orientation.w = 0.0
     new_pose.pose.position.x = 0.0
     new_pose.pose.position.y = 0.0
-    new_pose.pose.position.z = -0.01
+    new_pose.pose.position.z = -0.05
 
     #print "New Pose: %s" % (new_pose)
 

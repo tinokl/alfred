@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<launch>
+
+<!-- basic hardware node -->
+<include file="$(find ra1_pro)/launch/ra1_pro.launch"></include>
+
+<!-- moveit gui + joint publisher and much much more -->
+<include file="$(find ra1_pro_moveit_config)/launch/moveit.launch"></include>
+
+<!-- move to pose server -->
+<include file="$(find ra1_pro_move)/launch/ra1_pro_move_server.launch"></include>
+
+<!-- move cartesian server -->
+<include file="$(find ra1_pro_move_cartesian)/launch/ra1_pro_move_cartesian_server.launch"></include>
+
+<!-- rotate joint server -->
+<include file="$(find ra1_pro_rotate)/launch/ra1_pro_rotate.launch"></include>
+
+<!-- move spherical (follow point) -->
+<include file="$(find ra1_pro_spherical)/launch/ra1_pro_spherical.launch"></include>
+
+</launch>
+
