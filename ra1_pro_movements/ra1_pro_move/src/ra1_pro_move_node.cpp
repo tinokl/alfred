@@ -141,13 +141,13 @@ bool handleSetFixPose(ra1_pro_msgs::MoveFixPose::Request &req, ra1_pro_msgs::Mov
   switch (req.pose)
   {
 	case ra1_pro_msgs::MoveFixPose::Request::INIT:
-		res.error = res.SUCCESS;
+		res.error = ra1_pro_msgs::MoveFixPose::Response::SUCCESS;
 		ROS_INFO_STREAM("New fix pose for arm: INIT Pose");
 		return true;
 	break;
 
 	case ra1_pro_msgs::MoveFixPose::Request::HOME:
-		res.error = res.SUCCESS;
+		res.error = ra1_pro_msgs::MoveFixPose::Response::SUCCESS;
 		ROS_INFO_STREAM("New fix pose for arm: Home Pose");
 		return true;
 	break;

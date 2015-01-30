@@ -6,12 +6,15 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <dynamic_reconfigure/server.h>
 #include <ball_detection/BallDetectionConfig.h>
+#include <ra1_pro_msgs/DeltaPoint.h>
+#include <std_msgs/Header.h>
 
 namespace enc = sensor_msgs::image_encodings;
 
 class ImageConverter
 {
   ros::NodeHandle nh_;
+  ros::Publisher div_pub_;
   image_transport::ImageTransport it_;
   image_transport::Subscriber image_sub_;
   image_transport::Publisher image_pub_;
@@ -27,6 +30,7 @@ public:
     image_pub2_ = it_.advertise("/image_inbetween", 1);
     image_sub_ = it_.subscribe("/image_raw", 1, &ImageConverter::imageCb, this);
     config_server_.setCallback(boost::bind(&ImageConverter::configCallback, this, _1, _2));
+    div_pub_ = nh_.advertise<ra1_pro_msgs::DeltaPoint>("/ra1_pro/delta_ptn", 10);
   }
 
   ~ImageConverter()
@@ -36,8 +40,6 @@ public:
   void configCallback(const ball_detection::BallDetectionConfig & config, uint32_t)
   {
       config_ = config;
-      //hsv_min_ = cv::Scalar(config.min_hue, config.min_sat, config.min_val);
-      //hsv_max_ = cv::Scalar(config.max_hue, config.max_sat, config.max_val);
   }
 
   void imageCb(const sensor_msgs::ImageConstPtr& msg)
@@ -60,22 +62,6 @@ public:
     // Convert it to gray
     cv::cvtColor(cv_ptr->image, hsv_img, CV_BGR2HSV);
 
-    //cv::Scalar hsv_min(0, 128, 50, 0);
-    //cv::Scalar hsv_max(179, 255, 255, 0);
-    //cv::Scalar hsv_min(0, 128, 50, 0);
-    //cv::Scalar hsv_max(20, 255, 255, 0);
-    // Orange:
-    //cv::Scalar hsv_min(20, 40, 20, 0);
-    //cv::Scalar hsv_max(30, 100, 65, 0);
-    //cv::Scalar hsv_min(10, 100, 50, 0);
-    //cv::Scalar hsv_max(15, 255, 200, 0);
-
-    // Blue:
-    //cv::Scalar hsv_min(200/2, 40*255/100, 15*255/100, 0);
-    //cv::Scalar hsv_max(220/2, 90*255/100, 60*255/100, 0);
-    //cv::Scalar hsv_min(180/2, 30*255/100, 10*255/100, 0);
-    //cv::Scalar hsv_max(240/2, 100*255/100, 80*255/100, 0);
-
     cv::Scalar hsv_min(config_.min_hue, config_.min_sat, config_.min_val);
     cv::Scalar hsv_max(config_.max_hue, config_.max_sat, config_.max_val);
 
@@ -91,20 +77,34 @@ public:
     std::vector<cv::Vec3f> circles;
 
     // Apply the Hough Transform to find the circles
-    //cv::HoughCircles( bool_img, circles, CV_HOUGH_GRADIENT, 1, bool_img.rows/8, 200, 100, 0, 0 );
     cv::HoughCircles(bool_img, circles, CV_HOUGH_GRADIENT, 2, bool_img.rows/8, 100, 40, 50, 0 );
 
+    bool detected = false;
     // Draw the circles detected
+    cv::Point main_center;
     for( size_t i = 0; i < circles.size(); i++ )
     {
         cv::Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
+        main_center = center;
         int radius = cvRound(circles[i][2]);
         // circle center
         cv::circle( cv_ptr->image, center, 3, cv::Scalar(0,255,0), -1, 8, 0 );
         // circle outline
         cv::circle( cv_ptr->image, center, radius, cv::Scalar(0,0,255), 5, 8, 0 );
+        detected = true;
      }
     
+    if (detected)
+    {
+		ra1_pro_msgs::DeltaPoint d_msg;
+		d_msg.header.frame_id = "/ball";
+		d_msg.header.stamp = ros::Time::now();
+		d_msg.delta_x = main_center.x - 320;//- 640;
+		d_msg.delta_y = main_center.y - 240;//- 360;
+
+		div_pub_.publish(d_msg);
+    }
+
     image_pub_.publish(cv_ptr->toImageMsg());
   }
 };

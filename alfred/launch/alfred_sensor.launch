@@ -1,8 +1,19 @@
 <?xml version="1.0"?>
 <launch>
 
+<!-- basic camera node -->
+<node pkg="uvc_camera" type="uvc_camera_node" name="camera">
+        <param name="device" value="/dev/video0" />
+</node>
+
 <!-- basic collision scene server -->
 <include file="$(find ra1_pro_collision_scene)/launch/collision_scene.launch"></include>
+
+<!-- find the ball for playing -->
+<!-- <include file="$(find ball_detection)/launch/ball_detection.launch"></include> -->
+
+<!-- find frontal faces -->
+<include file="$(find alfred_haarcascade)/launch/alfred_haarcascade.launch"></include>
 
 <!-- -->
 <!--  <node name="Hark_Location" pkg="sound_sensor" type="localization_hark.sh"></node> -->

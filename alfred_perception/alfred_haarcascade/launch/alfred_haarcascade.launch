@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+
+  <node name="alfred_haarcascade_node" pkg="alfred_haarcascade" type="alfred_haarcascade_node" output="screen">  
+  
+    <param name="subscribe_cam" type="string" value="/image_raw" /> 
+    <param name="haarcascade_file" type="string" value="$(find alfred_haarcascade)/trained/haarcascade_frontalface_default.xml"/>
+
+    <!-- Only detect the biggest detection -->
+    <param name="biggest" type="bool" value="true"/>
+
+    <!-- For additional debug output -->
+    <param name="debug" type="bool" value="true"/>
+
+  </node>
+</launch>

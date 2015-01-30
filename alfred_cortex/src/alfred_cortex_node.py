@@ -56,7 +56,7 @@ class Cortex:
 
         #rospy.Subscriber("joy", Joy, self.gotControl, queue_size = 10)
         #rospy.Subscriber("HarkSource", HarkSource, self.heardNoise)
-        #rospy.Subscriber("speech", String, self.heardVoice)
+        rospy.Subscriber("speech", String, self.heard_voice)
 
         self.ra1_service_call(cmd_start)
 
@@ -100,6 +100,39 @@ class Cortex:
         except rospy.ServiceException, e:
             rospy.logerr(rospy.get_name() + ": Service call failed: " + e)
 
+    def ra1_spherical_sc(self, command):
+        rospy.wait_for_service('follow_point')
+        try:
+            spherical_sc = rospy.ServiceProxy('/alfred/follow_point', BasicCMD)
+
+            req = BasicCMDRequest()
+            if command == cmd_start:
+                response = spherical_sc(req.START)
+            elif command == cmd_stop:
+                response = spherical_sc(req.STOP)
+
+            print response
+        except rospy.ServiceException, e:
+            rospy.logerr(rospy.get_name() + ": Service call failed: " + e)
+
+    def heard_voice(self, data):
+        heard = data.data
+        str_start = "start"
+        str_stop = "stop"
+        str_track_me = "track me"
+        str_stop_track_me = "stop to track me"
+        if (heard.find(str_start) != -1):
+            self.ra1_service_call(cmd_start)
+            rospy.loginfo(rospy.get_name() + ": Heard Voice Command - Sending Start")
+        elif (heard.find(str_stop) != -1):
+            self.ra1_service_call(cmd_stop)
+            rospy.loginfo(rospy.get_name() + ": Heard Voice Command - Sending Stop")
+        elif (heard.find(str_track_me) != -1):
+            self.ra1_spherical_sc(cmd_start)
+            rospy.loginfo(rospy.get_name() + ": Heard Voice Command - Track you")
+        elif (heard.find(str_stop_track_me) != -1):
+            self.ra1_spherical_sc(cmd_stop)
+            rospy.loginfo(rospy.get_name() + ": Heard Voice Command - Stop tracking you")
 
         # def gotControl(self, data):
         #   joy = data
@@ -124,19 +157,6 @@ class Cortex:
         #     self.vel_com_pub.publish(self.msg)
         #     rospy.loginfo(rospy.get_name() + ": Got Controller Command - Moving Joint")
         #     rospy.sleep(0.5)
-
-        # def heardVoice(self, data):
-        #   heard = data.data
-        #   str_start = "start"
-        #   str_stop = "stop"
-        #   if (heard.find(str_start) != -1):
-        #     self.msg = arm_vel_msg( "START" , 0 , 0 , 0 , 0 )
-        #     self.vel_com_pub.publish(self.msg)
-        #     rospy.loginfo(rospy.get_name() + ": Heard Voice Command - Sending Start")
-        #   elif (heard.find(str_stop) != -1):
-        #     self.msg = arm_vel_msg( "CLOSE" , 0 , 0 , 0 , 0 )
-        #     self.vel_com_pub.publish(self.msg)
-        #     rospy.loginfo(rospy.get_name() + ": Heard Voice Command - Sending Stop")
 
 
         # def heardNoise(self, data):

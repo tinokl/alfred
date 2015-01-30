@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   sensor_msgs
   std_msgs
+  ra1_pro_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -115,6 +116,7 @@ add_executable(ball_detection_node src/find_circle.cpp)
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
 add_dependencies(ball_detection_node ${PROJECT_NAME}_gencfg)
+add_dependencies(ball_detection_node ra1_pro_msgs_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(ball_detection_node

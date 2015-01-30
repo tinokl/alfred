@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(ra1_pro_spherical)
+project(alfred_haarcascade)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -7,14 +7,16 @@ project(ra1_pro_spherical)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
-  sensor_msgs
   std_msgs
+  sensor_msgs
   ra1_pro_msgs
+  cv_bridge
+  image_transport
 )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
-
+find_package(OpenCV)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -69,7 +71,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate added messages and services with any dependencies listed here
 # generate_messages(
 #   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
+#   std_msgs
 # )
 
 ###################################
@@ -82,9 +84,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES ra1_pro_spherical
-#  CATKIN_DEPENDS roscpp rospy
+  INCLUDE_DIRS include
+  CATKIN_DEPENDS roscpp rospy std_msgs
 #  DEPENDS system_lib
 )
 
@@ -94,27 +95,30 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-# include_directories(include)
+include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  ${OpenCV_INCLUDE_DIRS}
 )
 
 ## Declare a cpp library
-# add_library(ra1_pro_spherical
-#   src/${PROJECT_NAME}/ra1_pro_spherical.cpp
+# add_library(tedusar_haarcascade_detection
+#   src/${PROJECT_NAME}/tedusar_haarcascade_detection.cpp
 # )
 
 ## Declare a cpp executable
-# add_executable(ra1_pro_spherical_node src/ra1_pro_spherical_node.cpp)
+add_executable(alfred_haarcascade_node src/alfred_haarcascade_node.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
-# add_dependencies(ra1_pro_spherical_node ra1_pro_spherical_generate_messages_cpp)
+# add_dependencies(tedusar_haarcascade_detection_node tedusar_haarcascade_detection_generate_messages_cpp)
+add_dependencies(alfred_haarcascade_node ra1_pro_msgs_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(ra1_pro_spherical_node
-#   ${catkin_LIBRARIES}
-# )
+target_link_libraries(alfred_haarcascade_node
+ ${catkin_LIBRARIES}
+ ${OpenCV_LIBRARIES}
+)
 
 #############
 ## Install ##
@@ -131,7 +135,7 @@ include_directories(
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS ra1_pro_spherical ra1_pro_spherical_node
+# install(TARGETS tedusar_haarcascade_detection tedusar_haarcascade_detection_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -156,7 +160,7 @@ include_directories(
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_ra1_pro_spherical.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_tedusar_haarcascade_detection.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

@@ -3,8 +3,12 @@
 import roslib; roslib.load_manifest('ra1_pro_spherical')
 import rospy
 import math
+import random
+
+from std_msgs.msg import *
 from ra1_pro_msgs.srv import *
 from ra1_pro_msgs.msg import *
+from sensor_msgs.msg import JointState
 
 
 class Ra1ProSpherical:
@@ -12,26 +16,43 @@ class Ra1ProSpherical:
     def __init__(self):
         rospy.loginfo(rospy.get_name() + ": Starting Node")
 
-        self.basic_cmd_service = rospy.Service('follow_point', BasicCMD, self.handle_basic_cmd)
+        self.basic_cmd_service = rospy.Service('/alfred/follow_point', BasicCMD, self.handle_follow_sv)
+        self.dance_sv = rospy.Service('/alfred/dance', BasicCMD, self.handle_dance_sv)
+
         rospy.Subscriber("/ra1_pro/delta_ptn", DeltaPoint, self.delta_point_cb)
+        rospy.Subscriber("/joint_states", JointState, self.get_state_cb)
+        self.joint_state = rospy.Publisher('/move_group/controller_joint_states', JointState, queue_size=10)
 
         self.joints_horizontal = ['servo_6']
         self.joints_vertical = ['servo_5', 'servo_4', 'servo_3']
+        self.joints_dance = ['servo_2', 'servo_3', 'servo_4', 'servo_5', 'servo_6']
 
+        self.is_dancing = False
         self.is_follow_ptn = False
-        self.last_msg = None
+        self.last_state_msg = None
+        self.last_dp_msg = None
 
-        self.thresh_y = 10
-        self.thresh_x = 10
+        self.state_arm = JointState()
+        self.header = Header()
+        self.header.frame_id = '/base'
+        self.state_arm.header = self.header
 
-        rate = rospy.Rate(10)
+        self.dance_joint = None
+        self.dance_alpha = 0
+        self.dance_amplitude = 0.3
+
+        self.epsilon_y = 50
+        self.epsilon_x = 50
+
+        self.rate = rospy.Rate(10)
         while not rospy.is_shutdown():
             if self.is_follow_ptn is True:
-                #print "try to follow point"
                 self.follow_point()
-            rate.sleep()
+            elif self.is_dancing is True:
+                self.dance_move()
+            #self.rate.sleep()
 
-    def handle_basic_cmd(self, req):
+    def handle_follow_sv(self, req):
         resp = BasicCMDResponse()
 
         if req.cmd == req.STOP:
@@ -53,42 +74,110 @@ class Ra1ProSpherical:
         else:
             rospy.logerr(rospy.get_name() + ": Unknown Command!")
             resp = resp.ERROR
+        return resp
 
+    def handle_dance_sv(self, req):
+        resp = BasicCMDResponse()
+
+        if req.cmd == req.STOP:
+            if self.is_dancing is True:
+                rospy.loginfo(rospy.get_name() + ": Stop to dance")
+                self.is_dancing = False
+                resp = resp.SUCCESS
+            else:
+                rospy.logerr(rospy.get_name() + ": I was not dancing!")
+                resp = resp.ERROR
+        elif req.cmd == req.START:
+            self.rate = rospy.Rate(50)
+            if self.is_dancing is False:
+                rospy.loginfo(rospy.get_name() + ": Start to dance!")
+                self.is_dancing = True
+                self.dance_joint = random.randint(0, len(self.joints_dance)-1)
+                resp = resp.SUCCESS
+            else:
+                rospy.logerr(rospy.get_name() + ": I was already dancing!")
+                resp = resp.ERROR
+        else:
+            rospy.logerr(rospy.get_name() + ": Unknown Command!")
+            resp = resp.ERROR
         return resp
 
     def delta_point_cb(self, msg):
-        self.last_msg = msg
+        self.last_dp_msg = msg
+
+    def get_state_cb(self, msg):
+        if msg.name[0] == 'servo_2':
+            self.last_state_msg = msg
 
     def follow_point(self):
-        if self.last_msg is None:
-            rospy.logerr(rospy.get_name() + ": No msgs with delta points received!")
+        if self.last_dp_msg is None:
+            #rospy.logerr(rospy.get_name() + ": No msgs with delta points received!")
             return
+        if self.last_state_msg is None:
+            #rospy.logerr(rospy.get_name() + ": No state msgs received!")
+            return
+        #if abs(rospy.Time.now() - self.last_dp_msg.header.stamp) > 10:
+        #    rospy.logerr(rospy.get_name() + ": No new msgs received!")
+        #    return
 
-        duration = 0.0
-        if math.fabs(self.last_msg.delta_x) > self.thresh_x:
+        move_joints = []
+        move_positions = []
+        if math.fabs(self.last_dp_msg.delta_x) > self.epsilon_x:
             joint_name = self.joints_horizontal[0]
-            d_angle = (math.pi/180.0) * 15
-            d_angle = math.copysign(d_angle, self.last_msg.delta_x)
-            error = self.set_angle(joint_name, d_angle, duration)
-            rospy.loginfo(rospy.get_name() + ": Correcting horizontal with joint: " + joint_name)
+            index = self.last_state_msg.name.index(joint_name)
+            real_angle = self.last_state_msg.position[index]
 
-        if math.fabs(self.last_msg.delta_y) > self.thresh_y:
-            joint_name = self.joints_vertical[0]
-            d_angle = (math.pi/180.0) * 15
-            d_angle = math.copysign(d_angle, self.last_msg.delta_y)
-            error = self.set_angle(joint_name, d_angle, duration)
-            rospy.loginfo(rospy.get_name() + ": Correcting vertical with joint: " + joint_name)
+            d_angle = (math.pi/180.0) * self.last_dp_msg.delta_x/70
+            d_angle = math.copysign(d_angle, self.last_dp_msg.delta_x) * (-1.0)
+            new_angle = real_angle + d_angle
 
-    def set_angle(self, joint_name, delta, duration):
-        rospy.loginfo(rospy.get_name() + ": Waiting for Service")
-        rospy.wait_for_service('rotate_angle')
-        try:
-            set_angle = rospy.ServiceProxy('rotate_angle', RotateAngle)
-            resp1 = set_angle(joint_name, delta, duration)
+            move_joints.append(joint_name)
+            move_positions.append(new_angle)
+            # rospy.loginfo(rospy.get_name() + ": Correcting horizontal with joint: " + joint_name)
 
-            return resp1.error
-        except rospy.ServiceException, e:
-            rospy.loginfo(rospy.get_name() + ":Service call failed: %s" % e)
+        if math.fabs(self.last_dp_msg.delta_y) > self.epsilon_y:
+            pick = random.randint(0, len(self.joints_vertical)-1)
+            joint_name = self.joints_vertical[pick]
+            index = self.last_state_msg.name.index(joint_name)
+            real_angle = self.last_state_msg.position[index]
+
+            d_angle = (math.pi/180.0) * self.last_dp_msg.delta_y/70
+            d_angle = math.copysign(d_angle, self.last_dp_msg.delta_y)
+            new_angle = real_angle + d_angle
+
+            move_joints.append(joint_name)
+            move_positions.append(new_angle)
+            # rospy.loginfo(rospy.get_name() + ": Correcting vertical with joint: " + joint_name)
+
+        self.send_robot_state(move_joints, move_positions)
+
+    def dance_move(self):
+        move_joints = []
+        move_positions = []
+        joint_name = self.joints_dance[self.dance_joint]
+        move_joints.append(joint_name)
+        index = self.last_state_msg.name.index(joint_name)
+        real_angle = self.last_state_msg.position[index]
+
+        d_angle = math.sin(self.dance_alpha*math.pi/180) * self.dance_amplitude
+        self.dance_alpha += 40
+        if self.dance_alpha > 360:
+            self.dance_alpha = 0
+
+        rospy.loginfo(rospy.get_name() + ": Dance Alpha: " + str(self.dance_alpha))
+
+        new_angle = real_angle + d_angle
+        move_positions.append(new_angle)
+        self.send_robot_state(move_joints, move_positions)
+
+    def send_robot_state(self, joints, positions):
+        self.header.stamp = rospy.Time.now()
+
+        self.state_arm.name = joints
+        self.state_arm.position = positions
+        self.state_arm.velocity = [0.0, 0.0, 0.0, 0.0, 0.0]
+        self.state_arm.effort = []
+        self.joint_state.publish(self.state_arm)
 
 
 if __name__ == '__main__':

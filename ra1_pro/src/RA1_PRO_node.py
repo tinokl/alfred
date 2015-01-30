@@ -143,7 +143,6 @@ class Ra1Pro:
                     else:
                         rospy.logerr(rospy.get_name() + ": Port is closed!")
             rate.sleep()
-            #rospy.sleep(0.05)
 
     def handle_basic_cmd(self, req):
         resp = BasicCMDResponse()
@@ -164,6 +163,8 @@ class Ra1Pro:
                     self.norm_position()
                     self.ready = True
                     rospy.loginfo(rospy.get_name() + ": Starting")
+                    rospy.sleep(2)
+                    self.home_position()
                     resp = resp.SUCCESS
             else:
                 rospy.logerr(rospy.get_name() + self.msg_not_ready)
@@ -204,7 +205,7 @@ class Ra1Pro:
 
         new_position = False
         #servo = data.name[0]
-        rospy.loginfo(rospy.get_name() + ": Got trajectory")
+        #rospy.loginfo(rospy.get_name() + ": Got trajectory")
 
         servo_start = 0
         servo_end = len(data.name)
@@ -244,7 +245,7 @@ class Ra1Pro:
 
         if new_position:
             self.send_move_command()
-            rospy.loginfo(rospy.get_name() + ": Commit position move command")
+            #rospy.loginfo(rospy.get_name() + ": Commit position move command")
 
     def send_robot_state(self):
         self.state_arm = JointState()
@@ -324,6 +325,12 @@ class Ra1Pro:
         self.servo_new_pos = [-400.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.send_move_command()
         rospy.loginfo(rospy.get_name() + ": NORMAL position reached")
+
+    def home_position(self):
+        rospy.loginfo(rospy.get_name() + ": Turn to my HOME position")
+        self.servo_new_pos = [-400.0, 780.0, 800.0, -700.0, -600.0, -440.0]
+        self.send_move_command()
+        rospy.loginfo(rospy.get_name() + ": HOME position reached")
 
     def send_serial(self, string):
         norm_string = string
