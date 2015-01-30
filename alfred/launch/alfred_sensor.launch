@@ -3,7 +3,7 @@
 
 <!-- basic camera node -->
 <node pkg="uvc_camera" type="uvc_camera_node" name="camera">
-        <param name="device" value="/dev/video0" />
+        <param name="device" value="/dev/video1" />
 </node>
 
 <!-- basic collision scene server -->

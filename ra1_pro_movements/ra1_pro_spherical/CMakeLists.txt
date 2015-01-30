@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   std_msgs
   ra1_pro_msgs
+  dynamic_reconfigure
 )
 
 ## System dependencies are found with CMake's conventions
@@ -72,6 +73,13 @@ find_package(catkin REQUIRED COMPONENTS
 #   std_msgs  # Or other packages containing msgs
 # )
 
+#generate_dynamic_reconfigure_options(
+#  cfg/RA1ProSperical.cfg
+  #...
+#)
+
+generate_dynamic_reconfigure_options(cfg/RA1ProSperical.cfg)
+
 ###################################
 ## catkin specific configuration ##
 ###################################
@@ -107,9 +115,15 @@ include_directories(
 ## Declare a cpp executable
 # add_executable(ra1_pro_spherical_node src/ra1_pro_spherical_node.cpp)
 
+catkin_install_python(PROGRAMS src/ra1_pro_spherical_node.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
 # add_dependencies(ra1_pro_spherical_node ra1_pro_spherical_generate_messages_cpp)
+
+# make sure configure headers are built before any node using them
+add_dependencies(ra1_pro_spherical_node.py ${PROJECT_NAME}_gencfg)
 
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(ra1_pro_spherical_node
