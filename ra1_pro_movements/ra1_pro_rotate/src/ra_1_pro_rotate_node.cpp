@@ -9,17 +9,16 @@ Ra1ProRotateNode::Ra1ProRotateNode() :
   num_planning_attempts_ = 100;
 }
 
-bool Ra1ProRotateNode::init(std::string move_group_name)
+void Ra1ProRotateNode::init()
 {
-  move_group_ = boost::make_shared<move_group_interface::MoveGroup>(move_group_name);
+  ros::ServiceServer service_ = nh_.advertiseService("rotate_angle", &Ra1ProRotateNode::handleRotate, this);
+
+  move_group_ = boost::make_shared<move_group_interface::MoveGroup>("arm");
   nh_.param<double>("max_planning_time", this->max_planning_time_, 180.0);
   nh_.param<int>("num_planning_attempts", this->num_planning_attempts_, 100);
 
   display_publisher_pub_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("/move_group/display_planned_path", 1, true);
-
   joint_state_srv_ = nh_.serviceClient<ra1_pro_msgs::ReturnJointStates>("robot/joint_states_filtered");
-
-  return true;
 }
 
 double Ra1ProRotateNode::getCurrentJointPosition(std::string &joint_name)
@@ -93,32 +92,12 @@ move_group_interface::MoveItErrorCode Ra1ProRotateNode::rotateArmWithAngle(std::
   return error_code;
 }
 
-}
-
-bool handleRotate(ra1_pro_msgs::RotateAngle::Request &req, ra1_pro_msgs::RotateAngle::Response &res)
+bool Ra1ProRotateNode::handleRotate(ra1_pro_msgs::RotateAngle::Request &req, ra1_pro_msgs::RotateAngle::Response &res)
 {
-  std::string move_group_name("arm");
-
-  ra1_pro_rotate::Ra1ProRotateNode move_group;
-  if (!move_group.init(move_group_name))
-  {
-    res.error = move_group_interface::MoveItErrorCode::INVALID_GROUP_NAME;
-    return true;
-  }
-
-  std::string joint_name(req.joint_name);
-  double angle(req.delta);
-  double duration(req.duration);
-
-  res.error = move_group.rotateArmWithAngle(joint_name, angle, duration);
-
-  sleep(1.0);
+  res.error = rotateArmWithAngle(req.joint_name, req.delta, req.duration);
   return true;
 }
 
-void jointCallback(const sensor_msgs::JointState::ConstPtr& msg)
-{
-  //ROS_INFO_STREAM("I heard: " << msg->name[0]);
 }
 
 int main(int argc, char **argv)
@@ -128,11 +107,10 @@ int main(int argc, char **argv)
   ros::AsyncSpinner spinner(1);
   spinner.start();
 
-  ros::NodeHandle nh;
+  ra1_pro_rotate::Ra1ProRotateNode rotate_node;
+  rotate_node.init();
 
-  ros::ServiceServer service1 = nh.advertiseService("rotate_angle", handleRotate);
-  ros::Subscriber sub = nh.subscribe("/joint_states", 10, jointCallback);
-  ROS_INFO("Ready to get a new rotation angle.");
+  ROS_INFO("Rotate joint server ready!");
   ros::spin();
 
   return 0;

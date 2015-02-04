@@ -23,19 +23,16 @@ class Ra1ProRotateNode
 {
 public:
   Ra1ProRotateNode();
-  ~Ra1ProRotateNode()
-  {
-  }
-  ;
+  ~Ra1ProRotateNode(){};
 
-  bool init(std::string move_group_name);
-
+  void init();
   move_group_interface::MoveItErrorCode rotateArmWithAngle(std::string &joint_name, double &angle, double &duration);
-
   double getCurrentJointPosition(std::string &joint_name);
+  bool handleRotate(ra1_pro_msgs::RotateAngle::Request &req, ra1_pro_msgs::RotateAngle::Response &res);
 
 private:
   ros::NodeHandle nh_;
+  ros::ServiceServer service_ ;
   tf::TransformListener tf_listener_;
   ros::ServiceClient joint_state_srv_;
 
@@ -44,7 +41,6 @@ private:
   double max_planning_time_;
   int32_t num_planning_attempts_;
 
-  //moveIt! display
   ros::Publisher display_publisher_pub_;
 };
 }

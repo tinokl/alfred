@@ -3,7 +3,8 @@
 namespace collision_scene
 {
 
-CollisionScene::CollisionScene()
+CollisionScene::CollisionScene() :
+    once_(true)
 {}
 
 CollisionScene::~CollisionScene()
@@ -11,45 +12,30 @@ CollisionScene::~CollisionScene()
 
 void CollisionScene::init()
 {
-	ros::Rate loop_rate(10);
-	nh_ = ros::NodeHandle();
-	//tf_ = new tf::TransformListener(ros::Duration(2.0));
-	//boost::shared_ptr<tf::TransformListener> tf(new tf::TransformListener(ros::Duration(2.0)));
-	//planning_scene_monitor_ = new planning_scene_monitor::PlanningSceneMonitor("robot_description", tf);
-	server_ = nh_.advertiseService("manage_collision_scene", &CollisionScene::manageCollisionScene, this);
+  ros::Rate loop_rate(0.1);
+  nh_ = ros::NodeHandle();
 
-	//planning_scene_ = planning_scene_monitor_->getPlanningScene();
-	//acm_ = planning_scene_->getAllowedCollisionMatrix();
+  server_ = nh_.advertiseService("manage_collision_scene",
+      &CollisionScene::manageCollisionScene, this);
 
-    ROS_INFO_STREAM("Init Collision Scene");
+  ROS_INFO_STREAM("Init Collision Scene");
 
-	collision_object_publisher_ = nh_.advertise<moveit_msgs::CollisionObject>("collision_object", 1);
-    while(collision_object_publisher_.getNumSubscribers() < 1)
-    {
-      ROS_INFO_STREAM("Waiting for 'collision_object_publisher' subsribers");
-      ros::WallDuration sleep_t(0.5);
-      sleep_t.sleep();
-    }
+  collision_object_publisher_ = nh_.advertise<moveit_msgs::CollisionObject>(
+      "collision_object", 1);
 
-	attached_object_publisher_ = nh_.advertise<moveit_msgs::AttachedCollisionObject>("attached_collision_object", 1);
-    while(attached_object_publisher_.getNumSubscribers() < 1)
-    {
-      ROS_INFO_STREAM("Waiting for 'attached_object_publisher' subsribers");
-      ros::WallDuration sleep_t(0.5);
-      sleep_t.sleep();
-    }
+  attached_object_publisher_ = nh_.advertise<
+      moveit_msgs::AttachedCollisionObject>("attached_collision_object", 1);
 
-    planning_scene_diff_publisher = nh_.advertise<moveit_msgs::PlanningScene>("/move_group/monitored_planning_scene", 1);
-    while(planning_scene_diff_publisher.getNumSubscribers() < 1)
-    {
-      ROS_INFO_STREAM("Waiting for 'planning_scene_diff_publisher' subsribers");
-      ros::WallDuration sleep_t(0.5);
-      sleep_t.sleep();
-    }
+  planning_scene_diff_publisher = nh_.advertise<moveit_msgs::PlanningScene>(
+      "/move_group/monitored_planning_scene", 1);
 
-	addEnvironment();
+  while (ros::ok())
+  {
+    addEnvironment();
+    ros::spinOnce();
+    loop_rate.sleep();
+  }
 }
-
 
 bool CollisionScene::manageCollisionScene(ra1_pro_msgs::ManageCollisionScene::Request &req,
                                           ra1_pro_msgs::ManageCollisionScene::Response &res)
@@ -97,7 +83,8 @@ bool CollisionScene::manageCollisionScene(ra1_pro_msgs::ManageCollisionScene::Re
 
 void CollisionScene::addEnvironment()
 {
-	ROS_INFO("Adding the Environment to the planning scene");
+  if (once_)
+    ROS_INFO("Adding the Environment to the planning scene");
 
 	// Desk
 	shape_msgs::SolidPrimitive desk;
@@ -168,7 +155,11 @@ void CollisionScene::addEnvironment()
 	addCO(left_wall_co);
 	addCO(back_wall_co);
 
-	ROS_INFO("Adding the Environment finished");
+	if (once_)
+	{
+	  ROS_INFO("Adding the Environment finished");
+	  once_ = false;
+	}
 }
 
 moveit_msgs::CollisionObject CollisionScene::getCollisionObject(std::string object_id, std::string target_frame, geometry_msgs::Pose pose)
@@ -265,18 +256,17 @@ void CollisionScene::denyCollision(moveit_msgs::CollisionObject object)
 
 int main(int argc, char **argv)
 {
-    try
-    {
-        ros::init(argc, argv, "collision_scene_init" );
-        collision_scene::CollisionScene collision_scene;
-        collision_scene.init();
-        ros::spin();
-    }
-    catch( ... )
-    {
-        ROS_ERROR_NAMED("collision_scene_init","Unhandled exception!");
-        return -1;
-    }
+  try
+  {
+    ros::init(argc, argv, "collision_scene_init");
+    collision_scene::CollisionScene collision_scene;
+    collision_scene.init();
+    ros::spin();
+  } catch (...)
+  {
+    ROS_ERROR_NAMED("collision_scene_init", "Unhandled exception!");
+    return -1;
+  }
 
-    return 0;
+  return 0;
 }

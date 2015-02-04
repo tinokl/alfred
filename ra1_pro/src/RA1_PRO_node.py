@@ -62,7 +62,6 @@
 # Send: "Alfred # CURRENT 2 error" => Current of servo 2 too high, powers off (need reset)
 # Send: "Alfred # CURRENT 1 warning" => Current of servo 1 was close to maximum
 
-
 import roslib; roslib.load_manifest('ra1_pro')
 import rospy
 import serial
@@ -74,14 +73,15 @@ from sensor_msgs.msg import JointState
 from ra1_pro_msgs.msg import *
 from ra1_pro_msgs.srv import *
 
-wait_to_send = 1
-
 
 class Ra1Pro:
 
     def __init__(self):
         rospy.loginfo(rospy.get_name() + ": Starting Node")
-        rospy.loginfo(rospy.get_name() + ": Waiting for start")
+
+        self.offline = rospy.get_param('~offline')
+        self.ready = False
+        self.connected = False
 
         self.driver_pub = rospy.Publisher('ra1_pro/feedback', String, queue_size=10)
         self.joint_state = rospy.Publisher('joint_states', JointState, queue_size=10)
@@ -124,24 +124,23 @@ class Ra1Pro:
         self.state_gripper = JointState()
         self.header = Header()
 
-        self.ready = False
-        # what was read on the serial
-        self.connected = False
+        rospy.loginfo(rospy.get_name() + ": Waiting for start")
 
         while not rospy.is_shutdown():
-            if self.ser.isOpen() == 1:
+            if self.ser.isOpen() == 1 or self.offline:
                 self.send_robot_state()
-                try:
-                    serial_read = self.ser.readline().rstrip()
-                    string = rospy.get_name() + ": Serial Read: %s" % serial_read
-                    #rospy.loginfo(string)
-                    self.check_response(str(serial_read))
-                    self.driver_pub.publish(String(string))
-                except:
-                    if self.connected is False:
-                        rospy.loginfo(rospy.get_name() + ": Port is closed")
-                    else:
-                        rospy.logerr(rospy.get_name() + ": Port is closed!")
+                if self.offline is False:
+                    try:
+                        serial_read = self.ser.readline().rstrip()
+                        string = rospy.get_name() + ": Serial Read: %s" % serial_read
+                        #rospy.loginfo(string)
+                        self.check_response(str(serial_read))
+                        self.driver_pub.publish(String(string))
+                    except:
+                        if self.connected is False:
+                            rospy.loginfo(rospy.get_name() + ": Port is closed")
+                        else:
+                            rospy.logerr(rospy.get_name() + ": Port is closed!")
             rate.sleep()
 
     def handle_basic_cmd(self, req):
@@ -169,7 +168,6 @@ class Ra1Pro:
             else:
                 rospy.logerr(rospy.get_name() + self.msg_not_ready)
                 resp = resp.ERROR
-
         return resp
 
     def check_response(self, string):
@@ -204,24 +202,11 @@ class Ra1Pro:
             return
 
         new_position = False
-        #servo = data.name[0]
-        #rospy.loginfo(rospy.get_name() + ": Got trajectory")
-
         servo_start = 0
         servo_end = len(data.name)
 
-        #gripper = False
-
-        #if servo == "gripper_finger_left":
-        #    servo_start = 0
-        #    servo_end = 1
-        #    gripper = True
-
         for s in range(servo_start, servo_end):
             index = self.servo_name.index(data.name[s])
-            #print "servo: " + self.servo_name[index] + " index: " + str(index)
-            # remap from rad to grad and scale to hundred
-            #norm_position = ((data.position[s-1]*180/math.pi)*10)
             norm_position = ((data.position[s]*180/math.pi)*10)
             pos_round = round(norm_position)
 
@@ -245,7 +230,6 @@ class Ra1Pro:
 
         if new_position:
             self.send_move_command()
-            #rospy.loginfo(rospy.get_name() + ": Commit position move command")
 
     def send_robot_state(self):
         self.state_arm = JointState()
@@ -333,6 +317,10 @@ class Ra1Pro:
         rospy.loginfo(rospy.get_name() + ": HOME position reached")
 
     def send_serial(self, string):
+        if self.offline:
+            rospy.sleep(0.07)
+            return
+
         norm_string = string
         if len(string) < 48:
             # adding zeros if the msg is not long enough
@@ -346,28 +334,33 @@ class Ra1Pro:
         rospy.sleep(0.07)
 
     def init_serial(self):
-        rospy.loginfo(rospy.get_name() + ": INIT serial connection")
-        self.ser.baudrate = 38400
-        self.ser.port = '/dev/ttyUSB0'
-        try:
-            if self.ser.isOpen() == 0:
-                self.ser.open()
-        except:
-            rospy.logerr(rospy.get_name() + ": Cannot Open Port!")
+        rospy.loginfo(rospy.get_name() + ": Init serial connection")
+        if self.offline is False:
+            self.ser.baudrate = 38400
+            self.ser.port = '/dev/ttyUSB0'
+            try:
+                if self.ser.isOpen() == 0:
+                    self.ser.open()
+            except:
+                rospy.logerr(rospy.get_name() + ": Cannot Open Port!")
 
-        # Try to start the robot as long as init occurs
-        while self.connected == 0:
-            rospy.loginfo(rospy.get_name() + ": Serial connecting...")
-            #TODO maybe test something longer, case its already on
-            self.send_serial("ON")
-            time.sleep(wait_to_send)
-            self.send_serial("HARD")
-        rospy.loginfo(rospy.get_name() + ": Serial connection established")
+            # Try to start the robot as long as init occurs
+            while self.connected == 0:
+                wait_to_send = 1
+                rospy.loginfo(rospy.get_name() + ": Serial connecting...")
+                #TODO maybe test something longer, case its already on
+                self.send_serial("ON")
+                time.sleep(wait_to_send)
+                self.send_serial("HARD")
+            rospy.loginfo(rospy.get_name() + ": Serial connection established")
+        else:
+            rospy.loginfo(rospy.get_name() + ": Serial connection established (offline mode)")
 
     def cleanup(self):
         if self.ser.isOpen() == 1:
             self.sleep_position()
-            self.ser.close()
+            if self.offline:
+                self.ser.close()
 
 
 if __name__ == '__main__':

@@ -1,15 +1,24 @@
 #include <ra1_pro_move/ra1_pro_move_node.h>
-#include "ra1_pro_msgs/MovePose.h"
-#include "ra1_pro_msgs/MoveFixPose.h"
 
 namespace ra1_pro_move
 {
 
-RA1ProMove::RA1ProMove(std::string move_group_name) : nh_()
+RA1ProMove::RA1ProMove() :
+    nh_()
 {
-  move_group_ = boost::make_shared<move_group_interface::MoveGroup>(move_group_name);
-  nh_.param<double>("max_planning_time", this->max_planning_time_, 10.0);
-  nh_.param<int>("num_planning_attempts", this->num_planning_attempts_, 10);
+  max_planning_time_ = 180.0;
+  num_planning_attempts_ = 100;
+}
+
+void RA1ProMove::init()
+{
+  pose_service_ = nh_.advertiseService("move_pose", &RA1ProMove::handleSetArmPose, this);
+  fix_pose_service_ = nh_.advertiseService("move_fix_pose", &RA1ProMove::handleSetFixPose, this);
+
+  move_group_ = boost::make_shared<move_group_interface::MoveGroup>("arm");
+
+  nh_.param<double>("max_planning_time", this->max_planning_time_, 180.0);
+  nh_.param<int>("num_planning_attempts", this->num_planning_attempts_, 100);
 
   display_publisher_pub_ = nh_.advertise<moveit_msgs::DisplayTrajectory>("/move_group/display_planned_path", 1, true);
 }
@@ -81,29 +90,20 @@ bool RA1ProMove::moveToRandomPose()
   return false;
 }
 
-}
-
-bool handleSetArmPose(ra1_pro_msgs::MovePose::Request &req, ra1_pro_msgs::MovePose::Response &res)
+bool RA1ProMove::handleSetArmPose(ra1_pro_msgs::MovePose::Request &req, ra1_pro_msgs::MovePose::Response &res)
 {
-  ra1_pro_move::RA1ProMove arm("arm");
-
   res.error = res.NO_ERROR;
 
   ROS_INFO_STREAM("New pose for arm: " << req.pose);
 
-  if (!arm.moveArmToPose(req.pose))
+  if (!moveArmToPose(req.pose))
     res.error = res.ERROR;
 
-  sleep(1.0);
   return true;
 }
 
-bool handleSetFixPose(ra1_pro_msgs::MoveFixPose::Request &req, ra1_pro_msgs::MoveFixPose::Response &res)
+bool RA1ProMove::handleSetFixPose(ra1_pro_msgs::MoveFixPose::Request &req, ra1_pro_msgs::MoveFixPose::Response &res)
 {
-  ra1_pro_move::RA1ProMove arm("arm");
-
-
-
   /*
   robot_model_loader::RobotModelLoader robot_model_loader("robot_description");
   robot_model::RobotModelPtr kinematic_model = robot_model_loader.getModel();
@@ -153,7 +153,7 @@ bool handleSetFixPose(ra1_pro_msgs::MoveFixPose::Request &req, ra1_pro_msgs::Mov
 	break;
 
 	case ra1_pro_msgs::MoveFixPose::Request::RANDOM:
-	  if (!arm.moveToRandomPose())
+	  if (!moveToRandomPose())
 	    res.error = res.ERROR;
 	  	return true;
     break;
@@ -164,10 +164,10 @@ bool handleSetFixPose(ra1_pro_msgs::MoveFixPose::Request &req, ra1_pro_msgs::Mov
   }
 
   res.error = res.ERROR;
-  sleep(1.0);
   return true;
 }
 
+}
 
 int main(int argc, char **argv)
 {
@@ -176,12 +176,10 @@ int main(int argc, char **argv)
   ros::AsyncSpinner spinner(1);
   spinner.start();
 
-  ros::NodeHandle nh;
+  ra1_pro_move::RA1ProMove move_arm_node;
+  move_arm_node.init();
 
-  ros::ServiceServer pose_service = nh.advertiseService("move_pose", handleSetArmPose);
-  ros::ServiceServer fix_pose_service = nh.advertiseService("move_fix_pose", handleSetFixPose);
-
-  ROS_INFO("Ready to get arm poses");
+  ROS_INFO("Pose move server ready!");
   ros::spin();
 
   return 0;

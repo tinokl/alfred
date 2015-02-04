@@ -5,7 +5,6 @@ project(ra1_pro_spherical)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  roscpp
   rospy
   sensor_msgs
   std_msgs
@@ -78,7 +77,7 @@ find_package(catkin REQUIRED COMPONENTS
   #...
 #)
 
-generate_dynamic_reconfigure_options(cfg/RA1ProSperical.cfg)
+generate_dynamic_reconfigure_options(cfg/RA1ProSpherical.cfg)
 
 ###################################
 ## catkin specific configuration ##
@@ -92,7 +91,7 @@ generate_dynamic_reconfigure_options(cfg/RA1ProSperical.cfg)
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES ra1_pro_spherical
-#  CATKIN_DEPENDS roscpp rospy
+#  CATKIN_DEPENDS rospy
 #  DEPENDS system_lib
 )
 
@@ -103,9 +102,9 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 # include_directories(include)
-include_directories(
-  ${catkin_INCLUDE_DIRS}
-)
+#include_directories(
+#  ${catkin_INCLUDE_DIRS}
+#)
 
 ## Declare a cpp library
 # add_library(ra1_pro_spherical
@@ -115,15 +114,15 @@ include_directories(
 ## Declare a cpp executable
 # add_executable(ra1_pro_spherical_node src/ra1_pro_spherical_node.cpp)
 
-catkin_install_python(PROGRAMS src/ra1_pro_spherical_node.py
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+#catkin_install_python(PROGRAMS src/ra1_pro_spherical_node.py
+#  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
 # add_dependencies(ra1_pro_spherical_node ra1_pro_spherical_generate_messages_cpp)
-
+#add_custom_target(foo ALL DEPENDS ${PROJECT_NAME}_gencfg)
 # make sure configure headers are built before any node using them
-add_dependencies(ra1_pro_spherical_node.py ${PROJECT_NAME}_gencfg)
+#add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}_gencfg)
 
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(ra1_pro_spherical_node

@@ -14,6 +14,9 @@
 #include <moveit/robot_state/conversions.h>
 #include <moveit_msgs/DisplayTrajectory.h>
 
+#include "ra1_pro_msgs/MovePose.h"
+#include "ra1_pro_msgs/MoveFixPose.h"
+
 namespace ra1_pro_move
 {
 
@@ -22,30 +25,30 @@ class RA1ProMove
 
 public:
 
-  RA1ProMove(std::string move_group_name);
+  RA1ProMove();
 
   ~RA1ProMove(){};
 
+  void init();
+  bool handleSetFixPose(ra1_pro_msgs::MoveFixPose::Request &req, ra1_pro_msgs::MoveFixPose::Response &res);
+  bool handleSetArmPose(ra1_pro_msgs::MovePose::Request &req, ra1_pro_msgs::MovePose::Response &res);
+  bool findPlan(moveit::planning_interface::MoveGroup::Plan &plan);
   bool moveArmToPose(geometry_msgs::Pose &new_pose);
   bool moveToRandomPose();
 
-  //moveit display
   ros::Publisher display_publisher_pub_;
-
   ros::Publisher robot_state_publisher_;
 
 private:
-
-  ros::NodeHandle nh_;
-
-  bool findPlan(moveit::planning_interface::MoveGroup::Plan &plan);
 
   boost::shared_ptr<move_group_interface::MoveGroup> move_group_;
 
   double max_planning_time_;
   int32_t num_planning_attempts_;
 
-
+  ros::NodeHandle nh_;
+  ros::ServiceServer pose_service_;
+  ros::ServiceServer fix_pose_service_;
 
 };
 }

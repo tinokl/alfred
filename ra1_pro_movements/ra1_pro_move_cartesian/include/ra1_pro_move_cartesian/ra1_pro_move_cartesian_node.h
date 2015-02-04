@@ -11,33 +11,30 @@
 #include <tf/tf.h>
 #include <tf/transform_listener.h>
 
+#include "ra1_pro_msgs/MoveCartesian.h"
+
 namespace ra1_pro_move_cartesian
 {
 class RA1ProMoveCartesianNode
 {
 public:
   RA1ProMoveCartesianNode();
-  ~RA1ProMoveCartesianNode()
-  {
-  }
-  ;
+  ~RA1ProMoveCartesianNode(){};
 
-  bool init(std::string move_group_name);
-
+  void init();
   move_group_interface::MoveItErrorCode moveArmWithWaypoint(geometry_msgs::PoseStamped &waypoint, double &fraction);
+  bool handleSetMoveCartesian(ra1_pro_msgs::MoveCartesian::Request &req, ra1_pro_msgs::MoveCartesian::Response &res);
+  void getRealWaypointFromWaypoint(geometry_msgs::PoseStamped &waypoint, geometry_msgs::PoseStamped &destination_waypoint);
 
 private:
   ros::NodeHandle nh_;
+  ros::ServiceServer service_;
   tf::TransformListener tf_listener_;
-
-  void getRealWaypointFromWaypoint(geometry_msgs::PoseStamped &waypoint, geometry_msgs::PoseStamped &destination_waypoint);
 
   boost::shared_ptr<move_group_interface::MoveGroup> move_group_;
 
   double max_planning_time_;
   int32_t num_planning_attempts_;
-
-  //moveIt! display
   ros::Publisher display_publisher_pub_;
 };
 }
