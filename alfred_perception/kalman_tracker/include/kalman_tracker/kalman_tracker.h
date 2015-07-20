@@ -21,12 +21,12 @@
 namespace kalman_tracker
 {
 
-class KalmanTracker
+class KalmanTrackerNode
 {
   public:
 
-    KalmanTracker();
-    virtual ~KalmanTracker();
+    KalmanTrackerNode();
+    virtual ~KalmanTrackerNode();
 
     void init();
 
