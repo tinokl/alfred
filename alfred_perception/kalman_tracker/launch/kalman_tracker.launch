@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<launch>
+    <node pkg="kalman_tracker" type="kalman_tracker_node" name="kalman_tracker" output="screen"> 
+
+    <!--
+      <param name="imu_topic" type="string" value="imu_data"/>
+      <param name="pose_topic" type="string" value="scan_matcher_pose_2d"/> 
+    -->
+
+    </node>
+</launch>

@@ -158,7 +158,7 @@ class Ra1Pro:
         elif req.cmd == req.START:
             if self.ready is not True:
                 self.init_serial()
-                if self.ser.isOpen() == 1:
+                if self.ser.isOpen() == 1 or self.offline:
                     self.norm_position()
                     self.ready = True
                     rospy.loginfo(rospy.get_name() + ": Starting")
