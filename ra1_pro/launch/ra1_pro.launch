@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>    
     <node name="ra1_pro_node" pkg="ra1_pro" type="RA1_PRO_node.py" output="screen">
-    <param name="offline" value="true" />
+    <param name="offline" value="false" />
     </node>
 </launch>

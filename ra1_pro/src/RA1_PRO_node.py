@@ -342,7 +342,10 @@ class Ra1Pro:
                 if self.ser.isOpen() == 0:
                     self.ser.open()
             except:
-                rospy.logerr(rospy.get_name() + ": Cannot Open Port!")
+                rospy.logerr(rospy.get_name() + ": Cannot Open Port! Test: 'sudo gpasswd --add ${USER} dialout'")
+                rospy.logerr(rospy.get_name() + ": Try: 'sudo gpasswd --add ${USER} dialout'")
+                rospy.logerr(rospy.get_name() + ": or: sudo usermod -a -G tty $USER")
+                rospy.logerr(rospy.get_name() + ": sudo usermod -a -G dialout $USER")
 
             # Try to start the robot as long as init occurs
             while self.connected == 0:
