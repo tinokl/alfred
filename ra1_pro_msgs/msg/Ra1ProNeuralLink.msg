@@ -1,0 +1,7 @@
+Header header
+float64 servo_1_state
+float64 servo_2_state
+float64 servo_3_state
+float64 servo_4_state
+float64 servo_5_state
+float64 servo_6_state

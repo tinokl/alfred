@@ -14,6 +14,7 @@
 #int8 servo
 #float64 direction
 #float64 position
+#float64 percent
 
 # Normal Usage:
 # - Connect
@@ -23,24 +24,9 @@
 # - ...
 # - Server sends "OFF"
 
-## Serial Protocol:
-## SERVER -> CLIENT ##
-
-# Send: "ON" => Init and Power On Motors (must be 2 char long!)
-# Send: "OFF00000.." => Power Off Motors (must be 48 char long!)
-# Send: "ADC00000.." => Make ADC Measurements (warning and emergency stops, 48 char long!)
-# Send: "HARD0000.." => Turn On HARD mode (ADC but only warnings, need ADC ON to work, 48 char long!)
-# Send: "..S3N200V2.." => Servo 3 to negative position 200 with velocity of 2 (must be 48 char long!)
-# Send: "..S1P100V2.." => Servo 1 to positive position 100 with velocity of 2 (must be 48 char long!)
-
 # S - Which servo 	(S1,S2,S3,S4,S5 or S6)
 # N - The position 	(Min. N900 ..... P900 max)
 # V - The speed		(Fast V0  ......  V10 slow)
-
-# Complete Movement Samples:
-# Send: "S1N200V2S2P000V2S3P000V2S4P000V2S5P000V2S6P000V2" => Moves all servos at once
-# Send: "S1N200V2S2N200V2S3N200V2S4N200V2S5N200V2S6N200V2"
-# Send: "S1P100V1S2N300V2S3P400V3S4N500V4S5P400V5S6N300V6"
 
 ## CLIENT -> SERVER ##
 # Send: "Alfred # wait ON" => Robot is powered on and ready for "ON", repeats until ON cmd
@@ -64,9 +50,10 @@
 
 import roslib; roslib.load_manifest('ra1_pro')
 import rospy
-import serial
 import time
 import math
+
+from motor_driver import PCA9685
 
 from std_msgs.msg import *
 from sensor_msgs.msg import JointState
@@ -89,16 +76,17 @@ class Ra1Pro:
         self.basic_cmd_service = rospy.Service('ra1_pro_cmd', BasicCMD, self.handle_basic_cmd)
 
         rospy.Subscriber("/ra1_pro/cmd", Ra1ProSimpleMove, self.simple_movement)
+        rospy.Subscriber("/ra1_pro/neural_link", Ra1ProNeuralLink, self.neural_link)
         rospy.Subscriber("/move_group/controller_joint_states", JointState, self.get_trajectory)
 
         rate = rospy.Rate(10)
 
-        self.ser = serial.Serial()
-        self.ser.timeout = 0
+        #self.ser = serial.Serial()
+        self.pwm = PCA9685(0x40, debug=False)
+        self.pwm.setPWMFreq(50)
+        self.pwd_set = True
 
-        rospy.on_shutdown(self.cleanup)
-
-        self.msg_not_ready = ": System is not ready, did you start?"
+        self.msg_not_ready = ": System is not ready, what?"
 
         # 1 gripper
         # 2 rotate gripper
@@ -112,7 +100,6 @@ class Ra1Pro:
         self.servo_curr_pos = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.servo_new_pos = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.servo_prev_pos = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        self.servo_speed = [0, 0, 0, 0, 0, 0]
 
         self.servo_name = ['gripper_finger_left', 'servo_2', 'servo_3', 'servo_4', 'servo_5', 'servo_6']
 
@@ -127,20 +114,16 @@ class Ra1Pro:
         rospy.loginfo(rospy.get_name() + ": Waiting for start")
 
         while not rospy.is_shutdown():
-            if self.ser.isOpen() == 1 or self.offline:
+            if self.pwd_set or self.offline:
                 self.send_robot_state()
                 if self.offline is False:
                     try:
-                        serial_read = self.ser.readline().rstrip()
-                        string = rospy.get_name() + ": Serial Read: %s" % serial_read
-                        #rospy.loginfo(string)
-                        self.check_response(str(serial_read))
+                        raw, text = self.pwm.read()
+                        string = rospy.get_name() + ": Connection response: %s" % text
+                        #self.check_response(str(serial_read))
                         self.driver_pub.publish(String(string))
                     except:
-                        if self.connected is False:
-                            rospy.loginfo(rospy.get_name() + ": Port is closed")
-                        else:
-                            rospy.logerr(rospy.get_name() + ": Port is closed!")
+                        rospy.logerr(rospy.get_name() + ": Connection error occured!")
             rate.sleep()
 
     def handle_basic_cmd(self, req):
@@ -149,7 +132,7 @@ class Ra1Pro:
         if req.cmd == req.STOP:
             if self.ready is True:
                 self.ready = False
-                self.cleanup()
+                #self.cleanup()
                 rospy.loginfo(rospy.get_name() + ": Closing")
                 resp = resp.SUCCESS
             else:
@@ -157,7 +140,7 @@ class Ra1Pro:
                 resp = resp.ERROR
         elif req.cmd == req.START:
             if self.ready is not True:
-                self.init_serial()
+                #self.init_serial()
                 if self.ser.isOpen() == 1 or self.offline:
                     self.norm_position()
                     self.ready = True
@@ -170,6 +153,7 @@ class Ra1Pro:
                 resp = resp.ERROR
         return resp
 
+    """
     def check_response(self, string):
         cmd_on = "Alfred # ON executed"
         cmd_off = "Alfred # OFF init"
@@ -187,6 +171,7 @@ class Ra1Pro:
         if string == cmd_error:
             self.connected = True
             self.ready = True
+    """
 
     def simple_movement(self, data):
         if data.direction == 0 and self.ready is True:
@@ -195,6 +180,16 @@ class Ra1Pro:
             self.move_direction(data)
         else:
             rospy.logerr(rospy.get_name() + self.msg_not_ready)
+
+    def neural_link(self, data):
+        if self.ready is True:
+            self.servo_new_pos[0] = servo_max_pos[0] * data.servo_1_state
+            self.servo_new_pos[1] = servo_max_pos[1] * data.servo_2_state
+            self.servo_new_pos[2] = servo_max_pos[2] * data.servo_3_state
+            self.servo_new_pos[3] = servo_max_pos[3] * data.servo_4_state
+            self.servo_new_pos[4] = servo_max_pos[4] * data.servo_5_state
+            self.servo_new_pos[5] = servo_max_pos[5] * data.servo_6_state
+            self.send_move_command()
 
     def get_trajectory(self, data):
         if self.ready is False:
@@ -261,21 +256,18 @@ class Ra1Pro:
         self.joint_state.publish(self.state_gripper)
 
     def send_move_command(self):
-        cmd = ''
         for s in range(0, self.servos):
-            norm_position = str(int(abs(self.servo_new_pos[s]))).rjust(3, '0')
-            if self.servo_new_pos[s] < 0.0:
-                single = "S{0}N{1}V{2}".format((s+1), norm_position, int(self.servo_speed[s]))
-            else:
-                single = "S{0}P{1}V{2}".format((s+1), norm_position, int(self.servo_speed[s]))
-            cmd = cmd + single
+            norm_position = int(abs(self.servo_new_pos[s]))
+            self.pwm.setServoPulse(s,norm_position)
 
         self.servo_prev_pos = self.servo_curr_pos
         self.servo_curr_pos = self.servo_new_pos
 
         #rospy.loginfo(rospy.get_name() + ": Sending command to ra1 pro: " + cmd + "\n")
-        self.send_serial(cmd)
+        #self.send_serial(cmd)
+        
         self.send_robot_state()
+        time.sleep(0.02)
 
     def move_direction(self, data):
         position = self.servo_curr_pos[(data.servo-1)] + data.direction
@@ -301,7 +293,6 @@ class Ra1Pro:
         rospy.loginfo(rospy.get_name() + ": Turn to SLEEP position")
         self.servo_new_pos = [-400.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.send_move_command()
-        self.send_serial("OFF")
         rospy.loginfo(rospy.get_name() + ": SLEEP position reached")
 
     def norm_position(self):
@@ -315,55 +306,6 @@ class Ra1Pro:
         self.servo_new_pos = [-400.0, 780.0, 800.0, -700.0, -600.0, -440.0]
         self.send_move_command()
         rospy.loginfo(rospy.get_name() + ": HOME position reached")
-
-    def send_serial(self, string):
-        if self.offline:
-            rospy.sleep(0.07)
-            return
-
-        norm_string = string
-        if len(string) < 48:
-            # adding zeros if the msg is not long enough
-            norm_string = string.ljust(48, '0')
-        try:
-            self.ser.flushInput()
-            self.ser.write(norm_string)
-        except:
-            error = ": ERROR the port is maybe not open!"
-            rospy.logerr(rospy.get_name() + error)
-        rospy.sleep(0.07)
-
-    def init_serial(self):
-        rospy.loginfo(rospy.get_name() + ": Init serial connection")
-        if self.offline is False:
-            self.ser.baudrate = 38400
-            self.ser.port = '/dev/ttyUSB0'
-            try:
-                if self.ser.isOpen() == 0:
-                    self.ser.open()
-            except:
-                rospy.logerr(rospy.get_name() + ": Cannot Open Port! Test: 'sudo gpasswd --add ${USER} dialout'")
-                rospy.logerr(rospy.get_name() + ": Try: 'sudo gpasswd --add ${USER} dialout'")
-                rospy.logerr(rospy.get_name() + ": or: sudo usermod -a -G tty $USER")
-                rospy.logerr(rospy.get_name() + ": sudo usermod -a -G dialout $USER")
-
-            # Try to start the robot as long as init occurs
-            while self.connected == 0:
-                wait_to_send = 1
-                rospy.loginfo(rospy.get_name() + ": Serial connecting...")
-                #TODO maybe test something longer, case its already on
-                self.send_serial("ON")
-                time.sleep(wait_to_send)
-                self.send_serial("HARD")
-            rospy.loginfo(rospy.get_name() + ": Serial connection established")
-        else:
-            rospy.loginfo(rospy.get_name() + ": Serial connection established (offline mode)")
-
-    def cleanup(self):
-        if self.ser.isOpen() == 1:
-            self.sleep_position()
-            if self.offline:
-                self.ser.close()
 
 
 if __name__ == '__main__':

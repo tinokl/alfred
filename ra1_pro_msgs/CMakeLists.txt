@@ -47,6 +47,7 @@ find_package(catkin REQUIRED COMPONENTS
 add_message_files(
    FILES
    Ra1ProSimpleMove.msg
+   Ra1ProNeuralLink.msg
    DeltaPoint.msg
 )
 
