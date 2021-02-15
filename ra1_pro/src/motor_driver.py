@@ -42,6 +42,7 @@ class PCA9685:
   def read(self, reg):
     "Read an unsigned byte from the I2C device"
     result = self.bus.read_byte_data(self.address, reg)
+    text = ""
     if (self.debug):
       text = "I2C: Device 0x%02X returned 0x%02X from reg 0x%02X" % (self.address, result & 0xFF, reg)
       print(text)
