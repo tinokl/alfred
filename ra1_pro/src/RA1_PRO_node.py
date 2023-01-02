@@ -28,26 +28,6 @@
 # N - The position 	(Min. N900 ..... P900 max)
 # V - The speed		(Fast V0  ......  V10 slow)
 
-## CLIENT -> SERVER ##
-# Send: "Alfred # wait ON" => Robot is powered on and ready for "ON", repeats until ON cmd
-# Send: "Alfred # ON init" => On command was send
-# Send: "Alfred # ON executed" => On command has finished
-# Send: "Alfred # OFF init" => Off command was send
-# Send: "Alfred # OFF executed" => Off command has finished
-# Send: "Alfred # MOVE init" => Move command was send
-# Send: "Alfred # MOVE executed" => Move command has finished
-# Send: "Alfred # ADC init" => ADC command was send
-# Send: "Alfred # ADC executed" => ADC command has finished
-# Send: "Alfred # ADC switched OFF" => ADC mode switched off
-# Send: "Alfred # ADC switched ON" => ADC mode switched ON
-# Send: "Alfred # HARD init" => HARD command was send
-# Send: "Alfred # HARD executed" => HARD command has finished
-# Send: "Alfred # HARD switched OFF" => Hard mode switched off
-# Send: "Alfred # HARD switched ON" => Hard mode switched ON
-# Send: "Alfred # COMMAND Error" => Wrong command style
-# Send: "Alfred # CURRENT 2 error" => Current of servo 2 too high, powers off (need reset)
-# Send: "Alfred # CURRENT 1 warning" => Current of servo 1 was close to maximum
-
 import roslib; roslib.load_manifest('ra1_pro')
 import rospy
 import time
@@ -81,7 +61,6 @@ class Ra1Pro:
 
         rate = rospy.Rate(10)
 
-        #self.ser = serial.Serial()
         self.pwm = PCA9685(0x40, debug=False)
         self.pwm.setPWMFreq(50)
         self.pwd_set = True
@@ -91,15 +70,21 @@ class Ra1Pro:
         self.servos = 6
 
         # save servo positions
-        #                      1    2    3    4    5    6
+        #                      0    1    2    3    4    5
         self.servo_curr_pos = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.servo_new_pos = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
         # less than these values
         self.servo_name = ["gripper", "wrist", "servo3", "arm", "shoulder", "base"]
-        self.servo_pos_max = [1650, 2405, 2500, 2500, 2300, 2500]
+        self.servo_pos_max = [1650, 2405, 2500, 2700, 2800, 2500]
         self.servo_pos_center = [1000, 1500, 1550, 1650, 1600, 1550]
-        self.servo_pos_min = [950, 505, 500, 500, 700, 500]
+        self.servo_pos_min = [950, 505, 430, 500, 700, 500]
+
+        # 500 == 0 degree
+        # 1000 == 45 degree
+        # 1500 == 90 degree
+        # 2000 == 135 degree
+        # 2500 == 180 degree
 
         self.state_arm = JointState()
         self.state_gripper = JointState()
@@ -112,7 +97,7 @@ class Ra1Pro:
                 self.send_robot_state()
                 if self.offline is False:
                     try:
-                        raw, text = self.pwm.read()
+                        raw, text = self.pwm.read(0x00)
                         string = rospy.get_name() + ": Connection response: %s" % text
                         #self.check_response(str(serial_read))
                         self.driver_pub.publish(String(string))
@@ -125,17 +110,15 @@ class Ra1Pro:
 
         if req.cmd == req.STOP:
             if self.ready is True:
-                self.ready = False
-                #self.cleanup()
-                rospy.loginfo(rospy.get_name() + ": Closing")
-                resp = resp.SUCCESS
-            else:
                 rospy.logerr(rospy.get_name() + self.msg_not_ready)
-                resp = resp.ERROR
+                #resp = resp.ERROR
+            self.ready = False
+            #self.cleanup()
+            rospy.loginfo(rospy.get_name() + ": Closing")
+            resp = resp.SUCCESS
         elif req.cmd == req.START:
             if self.ready is not True:
-                #self.init_serial()
-                if self.ser.isOpen() == 1 or self.offline:
+                if self.pwd_set or self.offline:
                     self.norm_position()
                     self.ready = True
                     rospy.loginfo(rospy.get_name() + ": Starting")
@@ -187,6 +170,8 @@ class Ra1Pro:
             self.send_move_command()
 
     def get_trajectory(self, data):
+        return
+
         if self.ready is False:
             rospy.logerr(rospy.get_name() + self.msg_not_ready)
             return
@@ -198,7 +183,7 @@ class Ra1Pro:
         for s in range(servo_start, servo_end):
             index = self.servo_name.index(data.name[s])
             norm_position = ((data.position[s]*180/math.pi)*10)
-            pos_round = round(norm_position)
+            pos_round = round(norm_position/10)*10
 
             # gripper movement must be extra scaled
             if index is 0:
@@ -209,7 +194,7 @@ class Ra1Pro:
             #    speed = 1
             #self.servo_speed[s] = speed
 
-            if abs(pos_round) <= self.servo_pos_max[index] && abs(pos_round) >= self.servo_pos_min[index]:
+            if (abs(pos_round) <= self.servo_pos_max[index]) and (abs(pos_round) >= self.servo_pos_min[index]):
                 if pos_round != self.servo_curr_pos[index]:
                     self.servo_new_pos[index] = pos_round
                     new_position = True
@@ -251,54 +236,57 @@ class Ra1Pro:
         self.joint_state.publish(self.state_gripper)
 
     def send_move_command(self):
+        interrupt_wait = 0.01
         for s in range(0, self.servos):
             norm_position = int(abs(self.servo_new_pos[s]))
             self.pwm.setServoPulse(s,norm_position)
+            #time.sleep(interrupt_wait)
 
         self.servo_curr_pos = self.servo_new_pos
 
         #rospy.loginfo(rospy.get_name() + ": Sending command to ra1 pro: " + cmd + "\n")
-        #self.send_serial(cmd)
-        
         self.send_robot_state()
         time.sleep(0.02)
 
     def move_direction(self, data):
-        position = self.servo_curr_pos[(data.servo-1)] + data.direction
-        if abs(position) < self.servo_pos_max[(data.servo-1)] && abs(position) > self.servo_pos_min[(data.servo-1)]:
+        position = self.servo_curr_pos[data.servo] + data.direction
+        if (abs(position) < self.servo_pos_max[data.servo]) and (abs(position) > self.servo_pos_min[data.servo]):
             rospy.loginfo(rospy.get_name() + ": Commit direction move command")
-            self.servo_new_pos[(data.servo - 1)] = position
+            self.servo_new_pos[data.servo] = position
             self.send_move_command()
         else:
             rospy.loginfo(rospy.get_name() + ": Furthest position reached")
 
     def move_position(self, data):
-        if abs(data.position) <= self.servo_pos_max[(data.servo-1)]:
-            pos_round = round(data.position/100) * 100
-            if pos_round != self.servo_curr_pos[(data.servo-1)]:
+        if abs(data.position) <= self.servo_pos_max[data.servo] and abs(data.position) >= self.servo_pos_min[data.servo]:
+            pos_round = round(data.position/10) * 10
+            if pos_round != self.servo_curr_pos[data.servo]:
                 rospy.loginfo(rospy.get_name() + ": Commit position move command")
-                self.servo_new_pos[(data.servo - 1)] = pos_round
+                self.servo_new_pos[data.servo] = pos_round
                 self.send_move_command()
         else:
-            error = ": ERROR position out of bounds - position must be smaller than {0}".format(self.servo_pos_max[(data.servo-1)])
+            error = ": ERROR position out of bounds - position must be smaller than {0}".format(self.servo_pos_max[data.servo])
             rospy.logerr(rospy.get_name() + error)
 
     def sleep_position(self):
         rospy.loginfo(rospy.get_name() + ": Turn to SLEEP position")
-        self.servo_new_pos = [-400.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.servo_new_pos = [1000, 1500, 1550, 1650, 1600, 1550]
         self.send_move_command()
+        time.sleep(1.0)
         rospy.loginfo(rospy.get_name() + ": SLEEP position reached")
 
     def norm_position(self):
         rospy.loginfo(rospy.get_name() + ": Turn to NORMAL position")
-        self.servo_new_pos = [-400.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.servo_new_pos = self.servo_pos_center
         self.send_move_command()
+        time.sleep(1.0)
         rospy.loginfo(rospy.get_name() + ": NORMAL position reached")
 
     def home_position(self):
         rospy.loginfo(rospy.get_name() + ": Turn to my HOME position")
-        self.servo_new_pos = [-400.0, 780.0, 800.0, -700.0, -600.0, -440.0]
+        self.servo_new_pos = [1000, 530, 430, 2700, 2800, 1700]
         self.send_move_command()
+        time.sleep(1.0)
         rospy.loginfo(rospy.get_name() + ": HOME position reached")
 
 
