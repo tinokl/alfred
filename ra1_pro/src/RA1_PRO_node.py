@@ -88,24 +88,18 @@ class Ra1Pro:
 
         self.msg_not_ready = ": System is not ready, what?"
 
-        # 1 gripper
-        # 2 rotate gripper
-        # 3 joint of gripper
-        # 4 joint (weak)
-        # 5 joint (big one)
-        # 6 base (rotation)
         self.servos = 6
+
         # save servo positions
         #                      1    2    3    4    5    6
         self.servo_curr_pos = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.servo_new_pos = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        self.servo_prev_pos = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-
-        self.servo_name = ['gripper_finger_left', 'servo_2', 'servo_3', 'servo_4', 'servo_5', 'servo_6']
 
         # less than these values
-        #self.servo_max_pos = [900, 800, 500, 900, 900, 900]
-        self.servo_max_pos = [900, 900, 900, 900, 900, 900]
+        self.servo_name = ["gripper", "wrist", "servo3", "arm", "shoulder", "base"]
+        self.servo_pos_max = [1650, 2405, 2500, 2500, 2300, 2500]
+        self.servo_pos_center = [1000, 1500, 1550, 1650, 1600, 1550]
+        self.servo_pos_min = [950, 505, 500, 500, 700, 500]
 
         self.state_arm = JointState()
         self.state_gripper = JointState()
@@ -183,12 +177,13 @@ class Ra1Pro:
 
     def neural_link(self, data):
         if self.ready is True:
-            self.servo_new_pos[0] = servo_max_pos[0] * data.servo_1_state
-            self.servo_new_pos[1] = servo_max_pos[1] * data.servo_2_state
-            self.servo_new_pos[2] = servo_max_pos[2] * data.servo_3_state
-            self.servo_new_pos[3] = servo_max_pos[3] * data.servo_4_state
-            self.servo_new_pos[4] = servo_max_pos[4] * data.servo_5_state
-            self.servo_new_pos[5] = servo_max_pos[5] * data.servo_6_state
+            # normalize neural input within servor min max range
+            self.servo_new_pos[0] = servo_pos_min[0] + (servo_pos_max[0]-servo_pos_min[0]) * data.servo_1_state
+            self.servo_new_pos[1] = servo_pos_min[1] + (servo_pos_max[1]-servo_pos_min[1]) * data.servo_2_state
+            self.servo_new_pos[2] = servo_pos_min[2] + (servo_pos_max[2]-servo_pos_min[2]) * data.servo_3_state
+            self.servo_new_pos[3] = servo_pos_min[3] + (servo_pos_max[3]-servo_pos_min[3]) * data.servo_4_state
+            self.servo_new_pos[4] = servo_pos_min[4] + (servo_pos_max[4]-servo_pos_min[4]) * data.servo_5_state
+            self.servo_new_pos[5] = servo_pos_min[5] + (servo_pos_max[5]-servo_pos_min[5]) * data.servo_6_state
             self.send_move_command()
 
     def get_trajectory(self, data):
@@ -214,13 +209,13 @@ class Ra1Pro:
             #    speed = 1
             #self.servo_speed[s] = speed
 
-            if abs(pos_round) <= self.servo_max_pos[index]:
+            if abs(pos_round) <= self.servo_pos_max[index] && abs(pos_round) >= self.servo_pos_min[index]:
                 if pos_round != self.servo_curr_pos[index]:
                     self.servo_new_pos[index] = pos_round
                     new_position = True
             else:
-                error = ": ERROR position {0} servo {1} out of bounds - position must be smaller than {2}".format(round(norm_position), index, self.servo_max_pos[index])
-                self.servo_new_pos[index] = math.copysign(self.servo_max_pos[index], pos_round)
+                error = ": ERROR position {0} servo {1} out of bounds - position must be smaller than {2}".format(round(norm_position), index, self.servo_pos_max[index])
+                self.servo_new_pos[index] = math.copysign(self.servo_pos_max[index], pos_round)
                 rospy.logerr(rospy.get_name() + error)
 
         if new_position:
@@ -260,7 +255,6 @@ class Ra1Pro:
             norm_position = int(abs(self.servo_new_pos[s]))
             self.pwm.setServoPulse(s,norm_position)
 
-        self.servo_prev_pos = self.servo_curr_pos
         self.servo_curr_pos = self.servo_new_pos
 
         #rospy.loginfo(rospy.get_name() + ": Sending command to ra1 pro: " + cmd + "\n")
@@ -271,7 +265,7 @@ class Ra1Pro:
 
     def move_direction(self, data):
         position = self.servo_curr_pos[(data.servo-1)] + data.direction
-        if abs(position) < self.servo_max_pos[(data.servo-1)]:
+        if abs(position) < self.servo_pos_max[(data.servo-1)] && abs(position) > self.servo_pos_min[(data.servo-1)]:
             rospy.loginfo(rospy.get_name() + ": Commit direction move command")
             self.servo_new_pos[(data.servo - 1)] = position
             self.send_move_command()
@@ -279,14 +273,14 @@ class Ra1Pro:
             rospy.loginfo(rospy.get_name() + ": Furthest position reached")
 
     def move_position(self, data):
-        if abs(data.position) <= self.servo_max_pos[(data.servo-1)]:
+        if abs(data.position) <= self.servo_pos_max[(data.servo-1)]:
             pos_round = round(data.position/100) * 100
             if pos_round != self.servo_curr_pos[(data.servo-1)]:
                 rospy.loginfo(rospy.get_name() + ": Commit position move command")
                 self.servo_new_pos[(data.servo - 1)] = pos_round
                 self.send_move_command()
         else:
-            error = ": ERROR position out of bounds - position must be smaller than {0}".format(self.servo_max_pos[(data.servo-1)])
+            error = ": ERROR position out of bounds - position must be smaller than {0}".format(self.servo_pos_max[(data.servo-1)])
             rospy.logerr(rospy.get_name() + error)
 
     def sleep_position(self):
