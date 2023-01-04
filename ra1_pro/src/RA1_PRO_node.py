@@ -118,47 +118,48 @@ class Ra1Pro:
         self.pwm.setPWMFreq(50)
         self.pwd_set = True
 
-        self.robot = []
+        self.robot = {}
 
         self.servo_gripper = Servo(name='gripper', pos_min=950, pos_max=1650, pos_norm=1000, vel_max=1000)
-        self.robot.append(self.servo_gripper)
+        self.robot[0] = self.servo_gripper
 
         self.servo_wrist = Servo(name='wrist', pos_min=505, pos_max=2405, pos_norm=1500, vel_max=10)
-        self.robot.append(self.servo_wrist)
+        self.robot[1] = self.servo_wrist
 
-        self.servo_servo3 = Servo(name='servo3', pos_min=430, pos_max=2500, pos_norm=1550, vel_max=10)
-        self.robot.append(self.servo_servo3)
+        self.servo_servo2 = Servo(name='servo2', pos_min=430, pos_max=2500, pos_norm=1550, vel_max=10)
+        self.robot[2] = self.servo_servo2
 
         self.servo_arm = Servo(name='arm', pos_min=500, pos_max=2700, pos_norm=1650, vel_max=10)
-        self.robot.append(self.servo_arm)
+        self.robot[3] = self.servo_arm
 
         self.servo_shoulder = Servo(name='shoulder', pos_min=700, pos_max=2800, pos_norm=1600, vel_max=10)
-        self.robot.append(self.servo_shoulder)
+        self.robot[4] = self.servo_shoulder
 
-        self.servo_base = Servo(name='base', pos_min=500, pos_max=2500, pos_norm=1550, vel_max=10)
-        self.robot.append(self.servo_base)
+        self.servo_base = Servo(name='base', pos_min=500, pos_max=2500, pos_norm=1700, vel_max=10)
+        self.robot[5] = self.servo_base
         
         rospy.loginfo(rospy.get_name() + ": Added following servos to robot:")
-        for i, servo in enumerate(self.robot):
-            rospy.loginfo(rospy.get_name() + ": Added servo {}: {}".format(i + 1, servo.name))
+        for i, servo in self.robot.items():
+            rospy.loginfo(rospy.get_name() + ": Added servo {}: {}".format(i, servo.name))
 
+        self.robot_pose_home = {}
+        self.robot_pose_home["gripper"] = 1000
+        self.robot_pose_home["wrist"] = 530
+        self.robot_pose_home["servo2"] = 430
+        self.robot_pose_home["arm"] = 2700
+        self.robot_pose_home["shoulder"] = 2700
+        self.robot_pose_home["base"] = 1700
+
+        self.robot_pose_sleep = {}
+        self.robot_pose_sleep["gripper"] = 1000
+        self.robot_pose_sleep["wrist"] = 530
+        self.robot_pose_sleep["servo2"] = 430
+        self.robot_pose_sleep["arm"] = 2700
+        self.robot_pose_sleep["shoulder"] = 2500
+        self.robot_pose_sleep["base"] = 1700
+
+        # init robot initial state with sleep state to get recovered
         self.set_position_sleep()
-
-        """
-
-        # save servo positions
-        #                      0    1    2    3    4    5
-        self.servo_curr_pos = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        self.servo_new_pos = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-
-        # less than these values
-        self.servo_name = ["gripper", "wrist", "servo3", "arm", "shoulder", "base"]
-        self.servo_pos_max = [1650, 2405, 2500, 2700, 2800, 2500]
-        self.servo_pos_center = [1000, 1500, 1550, 1650, 1600, 1550]
-        self.servo_pos_min = [950, 505, 430, 500, 700, 500]
-        self.servo_speed_limit = [1000, 10, 10, 10, 10, 10]
-
-        """
 
         self.state_arm = JointState()
         self.state_gripper = JointState()
@@ -183,7 +184,7 @@ class Ra1Pro:
         resp = BasicCMDResponse()
 
         if req.cmd == req.STOP:
-            if self.ready is True:
+            if self.ready is False:
                 rospy.logerr(rospy.get_name() + self.msg_not_ready)
                 #resp = resp.ERROR
             self.ready = False
@@ -195,7 +196,7 @@ class Ra1Pro:
             if self.ready is not True:
                 if self.pwd_set or self.offline:
                     rospy.loginfo(rospy.get_name() + ": Starting")
-                    self.move_position_norm()
+                    #self.move_position_norm()
                     self.ready = True
                     rospy.sleep(2)
                     self.move_position_home()
@@ -216,7 +217,7 @@ class Ra1Pro:
     def callback_neural_link(self, data):
         if self.ready is True:
 
-            for i, servo in enumerate(self.robot):
+            for i, servo in self.robot.items():
                 # Normalize neural input within servo min max range
                 new_pos = servo.pos_min + (servo.pos_max - servo.pos_min) * getattr(data, 'servo_{}_state'.format(i + 1))
                 feedback = servo.update_goal_position(new_pos)
@@ -224,15 +225,6 @@ class Ra1Pro:
                     rospy.logwarn(rospy.get_name() + ": neural command failed!")
 
             self.execute_move_command()
-
-            """
-            self.servo_new_pos[0] = servo_pos_min[0] + (servo_pos_max[0]-servo_pos_min[0]) * data.servo_1_state
-            self.servo_new_pos[1] = servo_pos_min[1] + (servo_pos_max[1]-servo_pos_min[1]) * data.servo_2_state
-            self.servo_new_pos[2] = servo_pos_min[2] + (servo_pos_max[2]-servo_pos_min[2]) * data.servo_3_state
-            self.servo_new_pos[3] = servo_pos_min[3] + (servo_pos_max[3]-servo_pos_min[3]) * data.servo_4_state
-            self.servo_new_pos[4] = servo_pos_min[4] + (servo_pos_max[4]-servo_pos_min[4]) * data.servo_5_state
-            self.servo_new_pos[5] = servo_pos_min[5] + (servo_pos_max[5]-servo_pos_min[5]) * data.servo_6_state
-            """
 
     def get_trajectory(self, data):
         return
@@ -342,24 +334,28 @@ class Ra1Pro:
         # TODO - Should we run this first check all the first servos are done?
         # TODO - At start the initial current pos is wrong, any other behaviour?
         while execution_running:
-            for i, servo in enumerate(self.robot):
-                #update_position = int(abs(servo.pos_goal))
-                diff_position = servo.pos_goal - servo.pos_current
-                # limit to the maximal allowed position change
-                step_size = min(servo.vel_max, abs(diff_position))
-                step = math.copysign(step_size, diff_position)
-                update_position = servo.pos_current + step
-                self.pwm.setServoPulse(i, update_position)
-                servo.update_current_position(update_position)
-                #time.sleep(interrupt_wait)
+            # check if all servos reached the destination
+            reached_destination = True
+
+            for i, servo in self.robot.items():
+                if servo.moveing:
+                    #update_position = int(abs(servo.pos_goal))
+
+                    diff_position = servo.pos_goal - servo.pos_current
+                    
+                    # limit to the maximal allowed position change
+                    step_size = min(servo.vel_max, abs(diff_position))
+                    step = math.copysign(step_size, diff_position)
+                    update_position = servo.pos_current + step
+
+                    self.pwm.setServoPulse(i, update_position)
+                    servo.update_current_position(update_position)
+                    #time.sleep(interrupt_wait)
+
+                    reached_destination = False
 
             self.send_robot_state()
 
-            # check if all servos reached the destination
-            reached_destination = True
-            for servo in self.robot:
-                if servo.moveing:
-                    reached_destination = False
             if reached_destination:
                 execution_running = False
 
@@ -367,26 +363,11 @@ class Ra1Pro:
             execution_now = rospy.Time.now()
             execution_duration = execution_now - execution_start
             if execution_duration > execution_max_duration:
-                error = ": ERROR execution of movement reached timout: {0} seconds!".format(execution_max_duration)
+                error = ": ERROR execution of movement reached timout: {0} seconds!".format(execution_max_duration.to_sec())
                 rospy.logerr(rospy.get_name() + error)
                 execution_running = False
 
             time.sleep(0.02)
-
-        """
-        interrupt_wait = 0.01
-        for s in range(0, self.servos):
-            norm_position = int(abs(self.servo_new_pos[s]))
-            self.pwm.setServoPulse(s,norm_position)
-            #time.sleep(interrupt_wait)
-
-        self.servo_curr_pos = self.servo_new_pos
-
-        #rospy.loginfo(rospy.get_name() + ": Sending command to ra1 pro: " + cmd + "\n")
-        self.send_robot_state()
-        time.sleep(0.02)
-
-        """
 
     def move_direction(self, data):
         print("TODO implement")
@@ -402,31 +383,18 @@ class Ra1Pro:
         """
 
     def move_position(self, data):
-        servo = self.servos[data.servo]  # Get the Servo object from the list
+        servo = self.robot[data.servo]  # Get the Servo object from the list
         feedback = servo.update_goal_position(data.position)
         if feedback == True:
-            rospy.loginfo(rospy.get_name() + ": Commit position move command")
+            rospy.loginfo(rospy.get_name() + ": Commit position move command on servo: {}".format(servo.name))
             self.execute_move_command()
         else:
-            rospy.logwarn(rospy.get_name() + ": Commit position move command failed!")
-
-    """ LEGACY
-    def move_position(self, data):
-        if abs(data.position) <= self.servo_pos_max[data.servo] and abs(data.position) >= self.servo_pos_min[data.servo]:
-            pos_round = round(data.position/10) * 10
-            if pos_round != self.servo_curr_pos[data.servo]:
-                rospy.loginfo(rospy.get_name() + ": Commit position move command")
-                self.servo_new_pos[data.servo] = pos_round
-                self.execute_move_command()
-        else:
-            error = ": ERROR position out of bounds - position must be smaller than {0}".format(self.servo_pos_max[data.servo])
-            rospy.logerr(rospy.get_name() + error)
-    """
+            rospy.logwarn(rospy.get_name() + ": Commit position move command on servo: {} failed!".format(servo.name))
 
     def move_position_norm(self):
         rospy.loginfo(rospy.get_name() + ": Turn to NORMAL position")
 
-        for servo in self.robot:
+        for key, servo in self.robot.items():
             feedback = servo.update_goal_position(servo.pos_norm)
 
         self.execute_move_command()
@@ -435,17 +403,13 @@ class Ra1Pro:
 
     def set_position_sleep(self):
         rospy.loginfo(rospy.get_name() + ": Set initial position to: SLEEP")
-        new_servo_pos = [1000, 1500, 1550, 1650, 1600, 1550]
-
-        for i, servo in enumerate(self.robot):
-            servo.pos_current = new_servo_pos[i]
+        for key, servo in self.robot.items():
+            servo.pos_current = self.robot_pose_sleep[servo.name]
 
     def move_position_sleep(self):
         rospy.loginfo(rospy.get_name() + ": Turn to SLEEP position")
-        new_servo_pos = [1000, 1500, 1550, 1650, 1600, 1550]
-
-        for i, servo in enumerate(self.robot):
-            feedback = servo.update_goal_position(new_servo_pos[i])
+        for key, servo in self.robot.items():
+            feedback = servo.update_goal_position(self.robot_pose_sleep[servo.name])
 
         self.execute_move_command()
         time.sleep(1.0)
@@ -453,10 +417,8 @@ class Ra1Pro:
 
     def move_position_home(self):
         rospy.loginfo(rospy.get_name() + ": Turn to my HOME position")
-        new_servo_pos = [1000, 530, 430, 2700, 2800, 1700]
-
-        for i, servo in enumerate(self.robot):
-            feedback = servo.update_goal_position(new_servo_pos[i])
+        for key, servo in self.robot.items():
+            feedback = servo.update_goal_position(self.robot_pose_home[servo.name])
 
         self.execute_move_command()
         time.sleep(1.0)
